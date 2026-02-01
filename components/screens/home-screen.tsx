@@ -5,10 +5,12 @@ import { Moon, Sun, Sunrise, SunDim, Sunset, CloudSun } from "lucide-react"
 import { PrayerTimeCard } from "@/components/prayer-time-card"
 import { RamadanCountdown } from "@/components/ramadan-countdown"
 import { VerseOfDay } from "@/components/verse-of-day"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useAppStore } from "@/lib/store"
 import { prayerZones } from "@/lib/prayer-zones"
 import { translations } from "@/lib/translations"
 import { formatSmartCountdown } from "@/lib/countdown-utils"
+import { getCachedData } from "@/lib/api-cache"
 
 interface PrayerData {
   hijri?: string
@@ -118,27 +120,34 @@ export function HomeScreen() {
     const fetchPrayer = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch(`/api/prayer?zone=${selectedZone}`)
-        if (res.ok) {
-          const data = await res.json()
-          if (data.prayers && Array.isArray(data.prayers) && data.prayers.length > 0) {
-            const todayDate = new Date().toISOString().split("T")[0]
-            let prayer = data.prayers.find((p: PrayerData) => p.date === todayDate)
-            if (!prayer) {
-              const dayIndex = new Date().getDate() - 1
-              prayer = data.prayers[dayIndex] || data.prayers[0]
-            }
-            if (prayer) {
-              setTodayPrayer(prayer)
-              if (prayer.hijri) {
-                setHijriDate(formatHijriDate(prayer.hijri, language))
-              }
+        const cacheKey = `prayer_${selectedZone}`
+        const data = await getCachedData(
+          cacheKey,
+          async () => {
+            const res = await fetch(`/api/prayer?zone=${selectedZone}`)
+            if (!res.ok) throw new Error("Failed to fetch")
+            return res.json()
+          },
+          24 * 60 * 60 * 1000, // 24 jam
+        )
+        
+        if (data.prayers && Array.isArray(data.prayers) && data.prayers.length > 0) {
+          const todayDate = new Date().toISOString().split("T")[0]
+          let prayer = data.prayers.find((p: PrayerData) => p.date === todayDate)
+          if (!prayer) {
+            const dayIndex = new Date().getDate() - 1
+            prayer = data.prayers[dayIndex] || data.prayers[0]
+          }
+          if (prayer) {
+            setTodayPrayer(prayer)
+            if (prayer.hijri) {
+              setHijriDate(formatHijriDate(prayer.hijri, language))
             }
           }
         }
+        setIsLoading(false)
       } catch (error) {
         console.error("Failed to fetch prayer times:", error)
-      } finally {
         setIsLoading(false)
       }
     }
@@ -306,6 +315,14 @@ export function HomeScreen() {
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          {isLoading ? (
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
+              <Skeleton className="h-4 w-24 bg-white/20" />
+              <Skeleton className="h-12 w-32 bg-white/20" />
+              <Skeleton className="h-4 w-40 bg-white/20" />
+              <Skeleton className="h-4 w-36 bg-white/20" />
+            </div>
+          ) : (
           <div style={fadeStyle}>
             {isAzanTime && azanPrayer ? (
               <>
@@ -313,11 +330,11 @@ export function HomeScreen() {
                 <h1
                   style={{
                     fontSize: "32px",
-                    fontWeight: 500,
+                    fontWeight: 700,
                     marginTop: "8px",
                     color: "#ffffff",
                     lineHeight: 1,
-                    fontFamily: "var(--font-sans)",
+                    fontFamily: '"Satoshi", system-ui, sans-serif',
                   }}
                 >
                   {azanPrayer.name}
@@ -326,7 +343,7 @@ export function HomeScreen() {
             ) : (
               <>
                 <p style={{ fontSize: "14px", color: "#ffffff", fontWeight: 500 }}>{getCountdownText()}</p>
-                <h1 style={{ fontSize: "48px", fontWeight: 600, marginTop: "8px", color: "#ffffff", lineHeight: 1 }}>
+                <h1 style={{ fontSize: "48px", fontWeight: 700, marginTop: "8px", color: "#ffffff", lineHeight: 1, fontFamily: '"Satoshi", system-ui, sans-serif' }}>
                   {currentTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                 </h1>
               </>
@@ -336,7 +353,8 @@ export function HomeScreen() {
             </p>
             <p style={{ fontSize: "14px", color: "#ffffff" }}>{hijriDate}</p>
           </div>
-          <NextPrayerIcon style={{ width: "80px", height: "80px", color: "#ffffff" }} />
+          )}
+          {!isLoading && <NextPrayerIcon style={{ width: "80px", height: "80px", color: "#ffffff" }} />}
         </div>
       </div>
 

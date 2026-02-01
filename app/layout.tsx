@@ -119,6 +119,14 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap"
           rel="stylesheet"
         />
+        <link
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@700,600&display=swap"
+          rel="stylesheet"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap"
+          rel="stylesheet"
+        />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
         <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
@@ -128,7 +136,7 @@ export default function RootLayout({
       </head>
       <body
         style={{
-          fontFamily: '"General Sans", system-ui, sans-serif',
+          fontFamily: '"Inter", system-ui, sans-serif',
           backgroundColor: "#18181b",
           color: "#ffffff",
           margin: 0,

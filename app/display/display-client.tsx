@@ -6,6 +6,7 @@ import { useAppStore } from "@/lib/store"
 import { prayerZones, zonesByState } from "@/lib/prayer-zones"
 import { translations } from "@/lib/translations"
 import { formatSmartCountdown } from "@/lib/countdown-utils"
+import { getCachedData } from "@/lib/api-cache"
 
 interface PrayerData {
   hijri?: string
@@ -168,17 +169,24 @@ export function DisplayClient() {
   useEffect(() => {
     const fetchPrayer = async () => {
       try {
-        const res = await fetch(`/api/prayer?zone=${selectedZone}`)
-        if (res.ok) {
-          const data = await res.json()
-          if (data.prayers && Array.isArray(data.prayers) && data.prayers.length > 0) {
-            const dayIndex = new Date().getDate() - 1
-            const prayer = data.prayers[dayIndex] || data.prayers[0]
-            if (prayer) {
-              setTodayPrayer(prayer)
-              if (prayer.hijri) {
-                setHijriDate(formatHijriDate(prayer.hijri, language))
-              }
+        const cacheKey = `prayer_${selectedZone}`
+        const data = await getCachedData(
+          cacheKey,
+          async () => {
+            const res = await fetch(`/api/prayer?zone=${selectedZone}`)
+            if (!res.ok) throw new Error("Failed to fetch")
+            return res.json()
+          },
+          24 * 60 * 60 * 1000, // 24 jam
+        )
+        
+        if (data.prayers && Array.isArray(data.prayers) && data.prayers.length > 0) {
+          const dayIndex = new Date().getDate() - 1
+          const prayer = data.prayers[dayIndex] || data.prayers[0]
+          if (prayer) {
+            setTodayPrayer(prayer)
+            if (prayer.hijri) {
+              setHijriDate(formatHijriDate(prayer.hijri, language))
             }
           }
         }
@@ -519,7 +527,7 @@ export function DisplayClient() {
           <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600 }}>{hijriDate}</p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <h1 style={{ fontSize: "64px", fontWeight: 600, color: customTitle ? "#ffffff" : "#3b82f6" }}>
+          <h1 style={{ fontSize: "64px", fontWeight: 700, color: customTitle ? "#ffffff" : "#3b82f6", fontFamily: '"Satoshi", system-ui, sans-serif' }}>
             {customTitle || "Waktu+"}
           </h1>
           <p style={{ fontSize: "96px", fontWeight: 600, color: "#ffffff" }}>
@@ -656,7 +664,7 @@ export function DisplayClient() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ fontSize: "24px", fontWeight: 600, color: "#ffffff", marginBottom: "24px" }}>{t.settings}</h2>
+            <h2 style={{ fontSize: "24px", fontWeight: 600, color: "#ffffff", marginBottom: "24px", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.settings}</h2>
 
             <div style={{ marginBottom: "16px" }}>
               <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>

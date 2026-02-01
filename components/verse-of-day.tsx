@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { translations } from "@/lib/translations"
+import { getCachedData } from "@/lib/api-cache"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface VerseData {
   arabic: string
@@ -34,14 +36,28 @@ export function VerseOfDay({ language }: VerseOfDayProps) {
         const verseNumber = (dayOfYear % 6236) + 1
 
         const translationEdition = language === "ms" ? "ms.basmeih" : "en.asad"
+        const cacheKey = `verse_${verseNumber}_${translationEdition}`
 
-        const [arabicRes, translationRes] = await Promise.all([
-          fetch(`/api/quran?endpoint=ayah/${verseNumber}`),
-          fetch(`/api/quran?endpoint=ayah/${verseNumber}/${translationEdition}`),
+        const [arabicData, translationData] = await Promise.all([
+          getCachedData(
+            `verse_arabic_${verseNumber}`,
+            async () => {
+              const res = await fetch(`/api/quran?endpoint=ayah/${verseNumber}`)
+              if (!res.ok) throw new Error("Failed to fetch")
+              return res.json()
+            },
+            24 * 60 * 60 * 1000,
+          ),
+          getCachedData(
+            cacheKey,
+            async () => {
+              const res = await fetch(`/api/quran?endpoint=ayah/${verseNumber}/${translationEdition}`)
+              if (!res.ok) throw new Error("Failed to fetch")
+              return res.json()
+            },
+            24 * 60 * 60 * 1000,
+          ),
         ])
-
-        const arabicData = await arabicRes.json()
-        const translationData = await translationRes.json()
 
         if (arabicData?.data && translationData?.data) {
           setVerse({
@@ -73,22 +89,19 @@ export function VerseOfDay({ language }: VerseOfDayProps) {
 
   return (
     <div style={{ backgroundColor: "#27272a", borderRadius: "8px", padding: "16px" }}>
-      <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "16px", color: "#ffffff" }}>{t.dailyVerse}</h2>
+      <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "16px", color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.dailyVerse}</h2>
 
       {isLoading ? (
-        <div style={{ display: "flex", justifyContent: "center", padding: "16px 0" }}>
-          <div
-            style={{
-              width: "24px",
-              height: "24px",
-              border: "2px solid transparent",
-              borderBottomColor: "#2563eb",
-              borderRadius: "50%",
-              animation: "spin 1s linear infinite",
-            }}
-          />
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <Skeleton className="h-6 w-28 bg-muted" />
+          <Skeleton className="h-16 w-full bg-muted" />
+          <Skeleton className="h-4 w-full bg-muted" />
+          <Skeleton className="h-4 w-48 bg-muted" />
+          <Skeleton className="h-4 w-20 bg-muted" />
+          <Skeleton className="h-10 w-full rounded-lg bg-muted mt-2" />
         </div>
-      ) : verse ? (
+      ) : null}
+      {!isLoading && verse ? (
         <>
           <p
             className="font-arabic"
@@ -106,6 +119,7 @@ export function VerseOfDay({ language }: VerseOfDayProps) {
         </>
       ) : null}
 
+      {!isLoading && (
       <Link
         href="/quran"
         style={{
@@ -127,6 +141,7 @@ export function VerseOfDay({ language }: VerseOfDayProps) {
       >
         {t.readQuran}
       </Link>
+      )}
     </div>
   )
 }

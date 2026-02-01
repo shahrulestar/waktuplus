@@ -18,7 +18,7 @@ export function MenuScreen() {
 
   return (
     <div style={{ padding: "16px", backgroundColor: "#18181b", minHeight: "100%" }}>
-      <h1 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "16px", color: "#ffffff" }}>{t.menu}</h1>
+      <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px", color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.menu}</h1>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
         {menuItems.map((item) => {

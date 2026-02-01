@@ -2,6 +2,7 @@
 
 import { Sun, Sunrise, SunDim, Sunset, Moon, CloudSun } from "lucide-react"
 import { translations } from "@/lib/translations"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface PrayerTime {
   fajr?: string
@@ -53,10 +54,31 @@ export function PrayerTimeCard({ prayerTime, zoneName, isLoading, language, isFr
 
   const brandColor = "#3B82F6"
 
+  if (isLoading) {
+    return (
+      <div style={{ backgroundColor: "#27272a", borderRadius: "8px", padding: "16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+          <Skeleton className="h-5 w-24 bg-muted" />
+          <Skeleton className="h-4 w-12 bg-muted" />
+        </div>
+        <Skeleton className="h-4 w-48 bg-muted mb-4" />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+              <Skeleton className="h-5 w-5 rounded-full bg-muted" />
+              <Skeleton className="h-4 w-12 bg-muted" />
+              <Skeleton className="h-4 w-10 bg-muted" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ backgroundColor: "#27272a", borderRadius: "8px", padding: "16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-        <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff" }}>{t.prayerTime}</h2>
+        <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.prayerTime}</h2>
         <span style={{ fontSize: "14px", color: "#a1a1aa" }}>{t.today}</span>
       </div>
       <p style={{ fontSize: "14px", color: "#a1a1aa", marginBottom: "16px" }}>{zoneName}</p>
@@ -64,7 +86,7 @@ export function PrayerTimeCard({ prayerTime, zoneName, isLoading, language, isFr
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
         {prayers.map((prayer, index) => {
           const Icon = prayer.icon
-          const isActive = index === activeIndex && !isLoading
+          const isActive = index === activeIndex
           return (
             <div
               key={prayer.name}
@@ -73,7 +95,7 @@ export function PrayerTimeCard({ prayerTime, zoneName, isLoading, language, isFr
               <Icon style={{ width: "20px", height: "20px", color: isActive ? brandColor : "#ffffff" }} />
               <span style={{ fontSize: "14px", color: isActive ? brandColor : "#ffffff" }}>{prayer.name}</span>
               <span style={{ fontSize: "14px", fontWeight: 500, color: isActive ? brandColor : "#ffffff" }}>
-                {isLoading ? "--:--" : prayer.time}
+                {prayer.time}
               </span>
             </div>
           )

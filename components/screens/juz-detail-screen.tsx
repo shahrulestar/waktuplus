@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useAppStore } from "@/lib/store"
 import { translations } from "@/lib/translations"
+import { getCachedData } from "@/lib/api-cache"
 
 interface JuzDetailScreenProps {
   juzNumber: number
@@ -41,15 +42,35 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
       try {
         const translationEdition = language === "ms" ? "ms.basmeih" : "en.asad"
 
-        const [arabicRes, translationRes, translitRes] = await Promise.all([
-          fetch(`/api/quran?endpoint=juz/${juzNumber}/quran-uthmani`),
-          fetch(`/api/quran?endpoint=juz/${juzNumber}/${translationEdition}`),
-          fetch(`/api/quran?endpoint=juz/${juzNumber}/en.transliteration`),
+        const [arabicData, translationData, translitData] = await Promise.all([
+          getCachedData(
+            `juz_arabic_${juzNumber}`,
+            async () => {
+              const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/quran-uthmani`)
+              if (!res.ok) throw new Error("Failed to fetch")
+              return res.json()
+            },
+            7 * 24 * 60 * 60 * 1000,
+          ),
+          getCachedData(
+            `juz_${juzNumber}_${translationEdition}`,
+            async () => {
+              const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/${translationEdition}`)
+              if (!res.ok) throw new Error("Failed to fetch")
+              return res.json()
+            },
+            7 * 24 * 60 * 60 * 1000,
+          ),
+          getCachedData(
+            `juz_${juzNumber}_transliteration`,
+            async () => {
+              const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/en.transliteration`)
+              if (!res.ok) throw new Error("Failed to fetch")
+              return res.json()
+            },
+            7 * 24 * 60 * 60 * 1000,
+          ),
         ])
-
-        const arabicData = await arabicRes.json()
-        const translationData = await translationRes.json()
-        const translitData = await translitRes.json()
 
         setAyahs(arabicData?.data?.ayahs || [])
         setTranslation(translationData?.data?.ayahs || [])
@@ -138,7 +159,7 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
 
       {/* Juz Header - Blue card */}
       <div style={{ backgroundColor: "#2563eb", padding: "16px", margin: "0 16px", borderRadius: "8px" }}>
-        <h1 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", margin: 0 }}>
+        <h1 style={{ fontSize: "16px", fontWeight: 700, color: "#ffffff", margin: 0, fontFamily: '"Satoshi", system-ui, sans-serif' }}>
           {t.juz} {juzNumber}
         </h1>
         <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.8)", margin: "4px 0 0 0" }}>
@@ -179,10 +200,16 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
                   <span style={{ fontSize: "12px", fontWeight: 600, color: "#ffffff" }}>{startIndex + index + 1}</span>
                 </div>
               </div>
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, position: "relative" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "14px", color: "#ffffff", fontWeight: 500 }}>{ayah.surah.englishName}</span>
+                  <span style={{ fontSize: "12px", color: "#71717a" }}>
+                    ({ayah.surah.number}:{ayah.numberInSurah})
+                  </span>
+                </div>
                 <p
                   className="font-arabic"
-                  style={{ fontSize: "20px", textAlign: "right", marginTop: "0px", color: "#ffffff", lineHeight: 2 }}
+                  style={{ fontSize: "20px", textAlign: "right", marginTop: "12px", color: "#ffffff", lineHeight: 2 }}
                   dir="rtl"
                 >
                   {ayah.text}
@@ -192,7 +219,9 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
                     {translit.text}
                   </p>
                 )}
-                {trans && <p style={{ fontSize: "14px", color: "#ffffff", marginTop: "4px" }}>{trans.text}</p>}
+                {trans && (
+                  <p style={{ fontSize: "14px", color: "#ffffff", marginTop: "4px" }}>{trans.text}</p>
+                )}
               </div>
             </div>
           )

@@ -6,6 +6,7 @@ import { Search } from "lucide-react"
 import type { QuranApiResponse, QuranSurah } from "@/lib/types"
 import { useAppStore } from "@/lib/store"
 import { translations } from "@/lib/translations"
+import { getCachedData } from "@/lib/api-cache"
 
 export function QuranScreen() {
   const [viewMode, setViewMode] = useState<"juz" | "surah">("juz")
@@ -19,8 +20,15 @@ export function QuranScreen() {
     const fetchQuran = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch("/api/quran?endpoint=quran/en.asad")
-        const data: QuranApiResponse = await res.json()
+        const data = await getCachedData<QuranApiResponse>(
+          "quran_surahs",
+          async () => {
+            const res = await fetch("/api/quran?endpoint=quran/en.asad")
+            if (!res.ok) throw new Error("Failed to fetch")
+            return res.json()
+          },
+          7 * 24 * 60 * 60 * 1000, // 7 hari (data Quran jarang berubah)
+        )
         setSurahs(data?.data?.surahs || [])
       } catch (error) {
         console.error("Failed to fetch Quran:", error)
@@ -81,7 +89,7 @@ export function QuranScreen() {
 
   return (
     <div style={{ padding: "16px", backgroundColor: "#18181b", minHeight: "100%" }}>
-      <h1 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "16px", color: "#ffffff" }}>{t.alQuran}</h1>
+      <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px", color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.alQuran}</h1>
 
       {/* Search */}
       <div style={{ position: "relative", marginBottom: "16px" }}>

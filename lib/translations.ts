@@ -75,6 +75,7 @@ export const translations = {
     followInstagram: "Follow us on Instagram",
     // Prayer Times Page
     selectZone: "Select Zone",
+    selectYear: "Select Year",
     selectMonth: "Select Month",
     january: "January",
     february: "February",
@@ -201,6 +202,7 @@ export const translations = {
     followInstagram: "Ikuti kami di Instagram",
     // Prayer Times Page
     selectZone: "Pilih Zon",
+    selectYear: "Pilih Tahun",
     selectMonth: "Pilih Bulan",
     january: "Januari",
     februari: "Februari",

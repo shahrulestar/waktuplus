@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ChevronLeft, ChevronDown } from "lucide-react"
 import { useAppStore } from "@/lib/store"
 import { prayerZones, zonesByState } from "@/lib/prayer-zones"
+import { getCachedData } from "@/lib/api-cache"
 import { translations } from "@/lib/translations"
 import { BottomNav } from "@/components/bottom-nav"
 
@@ -74,11 +75,17 @@ export function PrayerTimesClientPage() {
     const fetchPrayers = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch(`/api/prayer?zone=${zone}&year=${currentYear}&month=${month}`)
-        if (res.ok) {
-          const data = await res.json()
-          setPrayers(data.prayers || [])
-        }
+        const cacheKey = `prayer_${zone}_${currentYear}_${month}`
+        const data = await getCachedData(
+          cacheKey,
+          async () => {
+            const res = await fetch(`/api/prayer?zone=${zone}&year=${currentYear}&month=${month}`)
+            if (!res.ok) throw new Error("Failed to fetch")
+            return res.json()
+          },
+          30 * 24 * 60 * 60 * 1000, // 30 hari untuk data bulanan
+        )
+        setPrayers(data.prayers || [])
       } catch (error) {
         console.error("Failed to fetch prayers:", error)
       } finally {
@@ -131,7 +138,7 @@ export function PrayerTimesClientPage() {
           <span style={{ fontSize: "14px", fontWeight: 500 }}>{t.back}</span>
         </Link>
 
-        <h1 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "16px", color: "#ffffff" }}>{t.prayerTimes}</h1>
+        <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px", color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.prayerTimes}</h1>
 
         {/* Zone Dropdown */}
         <div style={{ marginBottom: "16px" }}>
@@ -151,7 +158,17 @@ export function PrayerTimesClientPage() {
                 cursor: "pointer",
               }}
             >
-              <span style={{ fontSize: "14px", color: "#ffffff" }}>
+              <span
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "flex-start",
+                  fontSize: "14px",
+                  color: "#ffffff",
+                  width: "100%",
+                  textAlign: "left",
+                }}
+              >
                 {currentZone?.code} - {currentZone?.name}
               </span>
               <ChevronDown
@@ -309,7 +326,7 @@ export function PrayerTimesClientPage() {
               />
             </div>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+            <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: "12px" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #3f3f46" }}>
                   <th style={{ padding: "8px 4px", textAlign: "left", color: labelColor, fontWeight: 500 }}>
@@ -354,6 +371,7 @@ export function PrayerTimesClientPage() {
                           padding: "8px 4px",
                           color: "#ffffff",
                           fontWeight: isToday ? 600 : 400,
+                          ...(isToday && { borderRadius: "4px 0 0 4px" }),
                         }}
                       >
                         {prayer.day}
@@ -364,7 +382,16 @@ export function PrayerTimesClientPage() {
                       <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}>{prayer.dhuhr}</td>
                       <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}>{prayer.asr}</td>
                       <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}>{prayer.maghrib}</td>
-                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}>{prayer.isha}</td>
+                      <td
+                        style={{
+                          padding: "8px 4px",
+                          textAlign: "center",
+                          color: "#ffffff",
+                          ...(isToday && { borderRadius: "0 4px 4px 0" }),
+                        }}
+                      >
+                        {prayer.isha}
+                      </td>
                     </tr>
                   )
                 })}

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useAppStore } from "@/lib/store"
 import { translations } from "@/lib/translations"
+import { getCachedData } from "@/lib/api-cache"
 
 interface SurahDetailScreenProps {
   surahNumber: number
@@ -14,8 +15,6 @@ interface AyahData {
   number: number
   text: string
   numberInSurah: number
-  audio?: string
-  audioSecondary?: string[]
   sajda: boolean
 }
 
@@ -45,15 +44,35 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
       try {
         const translationEdition = language === "ms" ? "ms.basmeih" : "en.asad"
 
-        const [arabicRes, translationRes, translitRes] = await Promise.all([
-          fetch(`/api/quran?endpoint=surah/${surahNumber}`),
-          fetch(`/api/quran?endpoint=surah/${surahNumber}/${translationEdition}`),
-          fetch(`/api/quran?endpoint=surah/${surahNumber}/en.transliteration`),
+        const [arabicData, translationData, translitData] = await Promise.all([
+          getCachedData(
+            `surah_arabic_${surahNumber}`,
+            async () => {
+              const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}`)
+              if (!res.ok) throw new Error("Failed to fetch")
+              return res.json()
+            },
+            7 * 24 * 60 * 60 * 1000,
+          ),
+          getCachedData(
+            `surah_${surahNumber}_${translationEdition}`,
+            async () => {
+              const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}/${translationEdition}`)
+              if (!res.ok) throw new Error("Failed to fetch")
+              return res.json()
+            },
+            7 * 24 * 60 * 60 * 1000,
+          ),
+          getCachedData(
+            `surah_${surahNumber}_transliteration`,
+            async () => {
+              const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}/en.transliteration`)
+              if (!res.ok) throw new Error("Failed to fetch")
+              return res.json()
+            },
+            7 * 24 * 60 * 60 * 1000,
+          ),
         ])
-
-        const arabicData = await arabicRes.json()
-        const translationData = await translationRes.json()
-        const translitData = await translitRes.json()
 
         setSurah(arabicData?.data)
         setTranslation(translationData?.data?.ayahs || [])
@@ -139,7 +158,7 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
 
       {/* Surah Header - Blue card */}
       <div style={{ backgroundColor: "#2563eb", padding: "16px", margin: "0 16px", borderRadius: "8px" }}>
-        <h1 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", margin: 0 }}>{surah?.englishName}</h1>
+        <h1 style={{ fontSize: "16px", fontWeight: 700, color: "#ffffff", margin: 0, fontFamily: '"Satoshi", system-ui, sans-serif' }}>{surah?.englishName}</h1>
         <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.8)", margin: "4px 0 0 0" }}>
           {surah?.englishNameTranslation}
         </p>
@@ -181,11 +200,13 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
                   <span style={{ fontSize: "12px", fontWeight: 600, color: "#ffffff" }}>{ayah.numberInSurah}</span>
                 </div>
               </div>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: "14px", color: "#ffffff", margin: 0 }}>{surah?.englishName}</p>
-                <p style={{ fontSize: "12px", color: "#71717a", margin: "2px 0 0 0" }}>
-                  ({surah?.number}:{ayah.numberInSurah})
-                </p>
+              <div style={{ flex: 1, position: "relative" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "14px", color: "#ffffff", fontWeight: 500 }}>{surah?.englishName}</span>
+                  <span style={{ fontSize: "12px", color: "#71717a" }}>
+                    ({surah?.number}:{ayah.numberInSurah})
+                  </span>
+                </div>
                 <p
                   className="font-arabic"
                   style={{ fontSize: "20px", textAlign: "right", marginTop: "12px", color: "#ffffff", lineHeight: 2 }}
@@ -198,7 +219,9 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
                     {translit.text}
                   </p>
                 )}
-                {trans && <p style={{ fontSize: "14px", color: "#ffffff", marginTop: "4px" }}>{trans.text}</p>}
+                {trans && (
+                  <p style={{ fontSize: "14px", color: "#ffffff", marginTop: "4px" }}>{trans.text}</p>
+                )}
               </div>
             </div>
           )
