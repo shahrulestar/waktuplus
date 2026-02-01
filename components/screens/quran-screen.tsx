@@ -13,7 +13,7 @@ export function QuranScreen() {
   const [searchQuery, setSearchQuery] = useState("")
   const [surahs, setSurahs] = useState<QuranSurah[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const { language, setLanguage, showTransliteration, setShowTransliteration } = useAppStore()
+  const { language, showTransliteration, setShowTransliteration, showQuranTranslation, setShowQuranTranslation, quranTranslationLang, setQuranTranslationLang } = useAppStore()
   const t = translations[language]
 
   useEffect(() => {
@@ -124,27 +124,57 @@ export function QuranScreen() {
         />
       </div>
 
+      {/* Language title, then Translation + Transliteration side by side, then English/Malay below */}
       <p style={{ fontSize: "14px", color: "#ffffff", marginBottom: "12px" }}>{t.languageLabel}</p>
 
-      {/* Language Toggle */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
-        <button onClick={() => setLanguage("en")} style={language === "en" ? primaryButtonStyle : secondaryButtonStyle}>
-          {t.english}
+      {/* Translation & Transliteration in one container, side by side, responsive */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "8px",
+          marginBottom: "12px",
+        }}
+      >
+        <button
+          onClick={() => setShowQuranTranslation(!showQuranTranslation)}
+          style={{
+            ...(showQuranTranslation ? primaryButtonStyle : secondaryButtonStyle),
+            flex: "1 1 0%",
+            minWidth: "120px",
+          }}
+        >
+          {t.translation} {showQuranTranslation ? t.on : t.off}
         </button>
-        <button onClick={() => setLanguage("ms")} style={language === "ms" ? primaryButtonStyle : secondaryButtonStyle}>
-          {t.bahasaMelayu}
-        </button>
-      </div>
-
-      {/* Transliteration Toggle */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
         <button
           onClick={() => setShowTransliteration(!showTransliteration)}
-          style={showTransliteration ? primaryButtonStyle : secondaryButtonStyle}
+          style={{
+            ...(showTransliteration ? primaryButtonStyle : secondaryButtonStyle),
+            flex: "1 1 0%",
+            minWidth: "120px",
+          }}
         >
           {t.transliteration} {showTransliteration ? t.on : t.off}
         </button>
       </div>
+
+      {/* English / Malay (below Translation & Transliteration) */}
+      {showQuranTranslation && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "16px" }}>
+          <button
+            onClick={() => setQuranTranslationLang("en")}
+            style={quranTranslationLang === "en" ? primaryButtonStyle : secondaryButtonStyle}
+          >
+            {t.english}
+          </button>
+          <button
+            onClick={() => setQuranTranslationLang("ms")}
+            style={quranTranslationLang === "ms" ? primaryButtonStyle : secondaryButtonStyle}
+          >
+            {t.bahasaMelayu}
+          </button>
+        </div>
+      )}
 
       {/* Juz/Surah Toggle */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>

@@ -29,7 +29,7 @@ interface SurahData {
 }
 
 export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
-  const { language, showTransliteration } = useAppStore()
+  const { language, showTransliteration, showQuranTranslation, quranTranslationLang } = useAppStore()
   const t = translations[language]
   const [surah, setSurah] = useState<SurahData | null>(null)
   const [translation, setTranslation] = useState<{ number: number; text: string; numberInSurah: number }[]>([])
@@ -42,37 +42,39 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
     const fetchSurah = async () => {
       setIsLoading(true)
       try {
-        const translationEdition = language === "ms" ? "ms.basmeih" : "en.asad"
+        const translationEdition = quranTranslationLang === "ms" ? "ms.basmeih" : "en.asad"
 
-        const [arabicData, translationData, translitData] = await Promise.all([
-          getCachedData(
-            `surah_arabic_${surahNumber}`,
-            async () => {
-              const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}`)
-              if (!res.ok) throw new Error("Failed to fetch")
-              return res.json()
-            },
-            7 * 24 * 60 * 60 * 1000,
-          ),
-          getCachedData(
-            `surah_${surahNumber}_${translationEdition}`,
-            async () => {
-              const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}/${translationEdition}`)
-              if (!res.ok) throw new Error("Failed to fetch")
-              return res.json()
-            },
-            7 * 24 * 60 * 60 * 1000,
-          ),
-          getCachedData(
-            `surah_${surahNumber}_transliteration`,
-            async () => {
-              const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}/en.transliteration`)
-              if (!res.ok) throw new Error("Failed to fetch")
-              return res.json()
-            },
-            7 * 24 * 60 * 60 * 1000,
-          ),
-        ])
+        const arabicPromise = getCachedData(
+          `surah_arabic_${surahNumber}`,
+          async () => {
+            const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}`)
+            if (!res.ok) throw new Error("Failed to fetch")
+            return res.json()
+          },
+          7 * 24 * 60 * 60 * 1000,
+        )
+        const translationPromise = showQuranTranslation
+          ? getCachedData(
+              `surah_${surahNumber}_${translationEdition}`,
+              async () => {
+                const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}/${translationEdition}`)
+                if (!res.ok) throw new Error("Failed to fetch")
+                return res.json()
+              },
+              7 * 24 * 60 * 60 * 1000,
+            )
+          : Promise.resolve({ data: { ayahs: [] } })
+        const translitPromise = getCachedData(
+          `surah_${surahNumber}_transliteration`,
+          async () => {
+            const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}/en.transliteration`)
+            if (!res.ok) throw new Error("Failed to fetch")
+            return res.json()
+          },
+          7 * 24 * 60 * 60 * 1000,
+        )
+
+        const [arabicData, translationData, translitData] = await Promise.all([arabicPromise, translationPromise, translitPromise])
 
         setSurah(arabicData?.data)
         setTranslation(translationData?.data?.ayahs || [])
@@ -85,7 +87,7 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
     }
     fetchSurah()
     setPage(1)
-  }, [surahNumber, language])
+  }, [surahNumber, quranTranslationLang, showQuranTranslation])
 
   const itemsPerPage = 10
   const totalPages = surah ? Math.max(1, Math.ceil(surah.numberOfAyahs / itemsPerPage)) : 1
@@ -219,7 +221,7 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
                     {translit.text}
                   </p>
                 )}
-                {trans && (
+                {showQuranTranslation && trans && (
                   <p style={{ fontSize: "14px", color: "#ffffff", marginTop: "4px" }}>{trans.text}</p>
                 )}
               </div>

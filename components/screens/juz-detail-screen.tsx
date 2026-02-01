@@ -27,7 +27,7 @@ interface JuzAyah {
 }
 
 export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
-  const { language, showTransliteration } = useAppStore()
+  const { language, showTransliteration, showQuranTranslation, quranTranslationLang } = useAppStore()
   const t = translations[language]
   const [ayahs, setAyahs] = useState<JuzAyah[]>([])
   const [translation, setTranslation] = useState<JuzAyah[]>([])
@@ -40,37 +40,39 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
     const fetchJuz = async () => {
       setIsLoading(true)
       try {
-        const translationEdition = language === "ms" ? "ms.basmeih" : "en.asad"
+        const translationEdition = quranTranslationLang === "ms" ? "ms.basmeih" : "en.asad"
 
-        const [arabicData, translationData, translitData] = await Promise.all([
-          getCachedData(
-            `juz_arabic_${juzNumber}`,
-            async () => {
-              const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/quran-uthmani`)
-              if (!res.ok) throw new Error("Failed to fetch")
-              return res.json()
-            },
-            7 * 24 * 60 * 60 * 1000,
-          ),
-          getCachedData(
-            `juz_${juzNumber}_${translationEdition}`,
-            async () => {
-              const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/${translationEdition}`)
-              if (!res.ok) throw new Error("Failed to fetch")
-              return res.json()
-            },
-            7 * 24 * 60 * 60 * 1000,
-          ),
-          getCachedData(
-            `juz_${juzNumber}_transliteration`,
-            async () => {
-              const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/en.transliteration`)
-              if (!res.ok) throw new Error("Failed to fetch")
-              return res.json()
-            },
-            7 * 24 * 60 * 60 * 1000,
-          ),
-        ])
+        const arabicPromise = getCachedData(
+          `juz_arabic_${juzNumber}`,
+          async () => {
+            const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/quran-uthmani`)
+            if (!res.ok) throw new Error("Failed to fetch")
+            return res.json()
+          },
+          7 * 24 * 60 * 60 * 1000,
+        )
+        const translationPromise = showQuranTranslation
+          ? getCachedData(
+              `juz_${juzNumber}_${translationEdition}`,
+              async () => {
+                const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/${translationEdition}`)
+                if (!res.ok) throw new Error("Failed to fetch")
+                return res.json()
+              },
+              7 * 24 * 60 * 60 * 1000,
+            )
+          : Promise.resolve({ data: { ayahs: [] } })
+        const translitPromise = getCachedData(
+          `juz_${juzNumber}_transliteration`,
+          async () => {
+            const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/en.transliteration`)
+            if (!res.ok) throw new Error("Failed to fetch")
+            return res.json()
+          },
+          7 * 24 * 60 * 60 * 1000,
+        )
+
+        const [arabicData, translationData, translitData] = await Promise.all([arabicPromise, translationPromise, translitPromise])
 
         setAyahs(arabicData?.data?.ayahs || [])
         setTranslation(translationData?.data?.ayahs || [])
@@ -83,7 +85,7 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
     }
     fetchJuz()
     setPage(1)
-  }, [juzNumber, language])
+  }, [juzNumber, quranTranslationLang, showQuranTranslation])
 
   const itemsPerPage = 10
   const totalAyahs = ayahs.length
@@ -219,7 +221,7 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
                     {translit.text}
                   </p>
                 )}
-                {trans && (
+                {showQuranTranslation && trans && (
                   <p style={{ fontSize: "14px", color: "#ffffff", marginTop: "4px" }}>{trans.text}</p>
                 )}
               </div>

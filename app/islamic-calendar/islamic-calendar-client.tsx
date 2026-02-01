@@ -88,6 +88,18 @@ export function IslamicCalendarClient() {
             </TableBody>
           </Table>
         </div>
+
+        <p style={{ fontSize: "12px", color: "#a1a1aa", marginTop: "16px" }}>
+          Source:{" "}
+          <a
+            href="https://muftiwp.gov.my/images/falak/takwim/tarikh_penting/TARIKH_Penting_Islam_2026.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "#3b82f6", textDecoration: "underline" }}
+          >
+            Jabatan Kemajuan Islam Malaysia (JAKIM)
+          </a>
+        </p>
       </div>
       <BottomNav activeScreen="menu" />
     </div>
