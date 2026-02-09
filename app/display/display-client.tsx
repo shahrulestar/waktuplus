@@ -28,6 +28,19 @@ type AlertState =
 
 type TestAlertType = "none" | "azan_countdown" | "azan_now" | "iqamah" | "khutbah_countdown" | "khutbah_quiet"
 
+type ThemeColor = "blue" | "indigo" | "pink" | "rose" | "emerald" | "yellow"
+
+const themeColorMap: Record<ThemeColor, { primary: string; gradient: string; label: string }> = {
+  blue: { primary: "#3b82f6", gradient: "#2563eb", label: "Blue" },
+  indigo: { primary: "#6366f1", gradient: "#4f46e5", label: "Indigo" },
+  pink: { primary: "#ec4899", gradient: "#db2777", label: "Pink" },
+  rose: { primary: "#f43f5e", gradient: "#e11d48", label: "Rose" },
+  emerald: { primary: "#10b981", gradient: "#059669", label: "Emerald" },
+  yellow: { primary: "#eab308", gradient: "#ca8a04", label: "Yellow" },
+}
+
+const themeColorKeys: ThemeColor[] = ["blue", "indigo", "pink", "rose", "emerald", "yellow"]
+
 const prayerIcons = {
   subuh: Moon,
   syuruk: Sunrise,
@@ -140,6 +153,19 @@ export function DisplayClient() {
   const [showTestAlertDropdown, setShowTestAlertDropdown] = useState(false)
   const [hijriDate, setHijriDate] = useState<string>("")
   const [iqamahForPrayer, setIqamahForPrayer] = useState<string | null>(null)
+  const [themeColor, setThemeColor] = useState<ThemeColor>("blue")
+  const [tempThemeColor, setTempThemeColor] = useState<ThemeColor>("blue")
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("waktu-display-theme")
+      if (stored && stored in themeColorMap) {
+        setThemeColor(stored as ThemeColor)
+      }
+    } catch (e) {
+      console.error("Failed to read theme color:", e)
+    }
+  }, [])
 
   const zoneInfo = prayerZones.find((z) => z.code === selectedZone)
   const isFriday = currentTime.getDay() === 5
@@ -421,6 +447,7 @@ export function DisplayClient() {
     setTempZone(selectedZone)
     setTempLanguage(language)
     setTempShowZone(showZone)
+    setTempThemeColor(themeColor)
     setShowSettings(true)
   }
 
@@ -429,6 +456,12 @@ export function DisplayClient() {
     setSelectedZone(tempZone)
     setLanguage(tempLanguage)
     setShowZone(tempShowZone)
+    setThemeColor(tempThemeColor)
+    try {
+      localStorage.setItem("waktu-display-theme", tempThemeColor)
+    } catch (e) {
+      console.error("Failed to save theme color:", e)
+    }
     setShowSettings(false)
     setShowZoneDropdown(false)
     setShowTestAlertDropdown(false)
@@ -518,16 +551,16 @@ export function DisplayClient() {
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "flex-start",
+          alignItems: "center",
           marginBottom: "24px",
         }}
       >
-        <div>
+        <div style={{ textAlign: "left" }}>
           <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600 }}>{formatGregorianDate(language)}</p>
           <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600 }}>{hijriDate}</p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <h1 style={{ fontSize: "64px", fontWeight: 700, color: customTitle ? "#ffffff" : "#3b82f6", fontFamily: '"Satoshi", system-ui, sans-serif' }}>
+          <h1 style={{ fontSize: "96px", fontWeight: 700, color: themeColorMap[themeColor].primary, fontFamily: '"Satoshi", system-ui, sans-serif' }}>
             {customTitle || "Waktu+"}
           </h1>
           <p style={{ fontSize: "96px", fontWeight: 600, color: "#ffffff" }}>
@@ -557,7 +590,7 @@ export function DisplayClient() {
               key={key}
               style={{
                 backgroundColor: isNext ? undefined : "transparent",
-                background: isNext ? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" : undefined,
+                background: isNext ? `linear-gradient(135deg, ${themeColorMap[themeColor].primary} 0%, ${themeColorMap[themeColor].gradient} 100%)` : undefined,
                 borderRadius: "8px",
                 padding: "16px",
                 display: "flex",
@@ -567,13 +600,13 @@ export function DisplayClient() {
                 minHeight: "200px",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px", lineHeight: 1.2 }}>
                 <Icon style={{ width: "80px", height: "80px", color: "#ffffff" }} />
-                <span style={{ fontSize: "clamp(48px, 6vw, 80px)", fontWeight: 600, color: "#ffffff" }}>
+                <span style={{ fontSize: "120px", fontWeight: 600, color: "#ffffff", lineHeight: 1.2 }}>
                   {prayerName}
                 </span>
               </div>
-              <span style={{ fontSize: "clamp(48px, 6vw, 80px)", fontWeight: 600, color: "#ffffff" }}>
+              <span style={{ fontSize: "118px", fontWeight: 600, color: "#ffffff", lineHeight: 1.2 }}>
                 {prayerTimes[index]}
               </span>
               {isNext &&
@@ -582,7 +615,7 @@ export function DisplayClient() {
                 alertState.type !== "khutbah_countdown" &&
                 alertState.type !== "khutbah_quiet" && (
                   <div style={{ marginTop: "8px", textAlign: "center" }}>
-                    <span style={{ fontSize: "24px", fontWeight: 500, color: "rgba(255,255,255,0.9)" }}>
+                    <span style={{ fontSize: "28px", fontWeight: 500, color: "rgba(255,255,255,0.9)" }}>
                       {isSyuruk ? `${t.sunriseIn} ${countdown}` : `${t.nextPrayer} • ${countdown}`}
                     </span>
                   </div>
@@ -592,7 +625,7 @@ export function DisplayClient() {
                   alertState.type === "khutbah_countdown" ||
                   alertState.type === "khutbah_quiet") && (
                   <div style={{ marginTop: "8px", textAlign: "center" }}>
-                    <span style={{ fontSize: "24px", fontWeight: 500, color: "rgba(255,255,255,0.9)" }}>
+                    <span style={{ fontSize: "28px", fontWeight: 500, color: "rgba(255,255,255,0.9)" }}>
                       {isSyuruk ? `${t.sunriseIn} ${countdown}` : `${t.nextPrayer} • ${countdown}`}
                     </span>
                   </div>
@@ -661,6 +694,7 @@ export function DisplayClient() {
               maxWidth: "400px",
               maxHeight: "80vh",
               overflowY: "auto",
+              position: "relative",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -687,6 +721,33 @@ export function DisplayClient() {
                   boxSizing: "border-box",
                 }}
               />
+            </div>
+
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                {t.themeColor}
+              </label>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {themeColorKeys.map((colorKey) => (
+                  <button
+                    key={colorKey}
+                    onClick={() => setTempThemeColor(colorKey)}
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "50%",
+                      backgroundColor: themeColorMap[colorKey].primary,
+                      border: tempThemeColor === colorKey ? "3px solid #ffffff" : "3px solid transparent",
+                      cursor: "pointer",
+                      transform: tempThemeColor === colorKey ? "scale(1.15)" : "scale(1)",
+                      transition: "transform 0.15s ease, border-color 0.15s ease",
+                      outline: "none",
+                      padding: 0,
+                    }}
+                    title={themeColorMap[colorKey].label}
+                  />
+                ))}
+              </div>
             </div>
 
             <div style={{ marginBottom: "16px" }}>
@@ -851,9 +912,10 @@ export function DisplayClient() {
                     padding: "12px",
                     backgroundColor: tempLanguage === "ms" ? "#3b82f6" : "#27272a",
                     border: "none",
+                    borderRadius: "8px",
                     color: "#ffffff",
                     fontSize: "14px",
-                    textAlign: "left",
+                    fontWeight: 500,
                     cursor: "pointer",
                   }}
                 >
@@ -902,15 +964,15 @@ export function DisplayClient() {
                   <div
                     style={{
                       position: "absolute",
-                      top: "100%",
+                      bottom: "100%",
                       left: 0,
                       right: 0,
                       backgroundColor: "#27272a",
                       borderRadius: "8px",
-                      marginTop: "4px",
+                      marginBottom: "4px",
                       maxHeight: "200px",
                       overflowY: "auto",
-                      zIndex: 10,
+                      zIndex: 100,
                     }}
                   >
                     {testAlertOptions.map((option) => (

@@ -1,50 +1,61 @@
-# Waktu+ - Malaysian Prayer Times App
+# Waktu+ - Malaysian Prayer Times & Al-Quran App
+
+> A modern web-based prayer time display for mosques, with Quran and more accessible on mobile. No ads, no signup.
 
 ## Overview
-Waktu+ is a comprehensive Islamic prayer times application designed for Muslims in Malaysia. It provides accurate prayer times based on JAKIM (Jabatan Kemajuan Islam Malaysia) data for all zones across Malaysia.
 
-## Features
+Waktu+ is a comprehensive Islamic web application designed for Muslims in Malaysia. It provides accurate prayer times based on JAKIM (Jabatan Kemajuan Islam Malaysia) data, a complete Al-Quran reader, Islamic calendar, and a full-screen mosque display mode.
 
-### Prayer Times
-- Real-time prayer times for all Malaysian zones (Fajr/Subuh, Sunrise/Syuruk, Dhuhr/Zohor, Asr/Asar, Maghrib, Isha/Isyak)
-- Prayer countdown timer showing time until next prayer
-- Monthly prayer timetable view
-- Automatic zone detection based on location
-- Support for 46 prayer zones across Malaysia
+Website: https://waktuplus.xyz
 
-### Al-Quran
+## Pages
+
+### Home (/)
+- Real-time prayer times with countdown to next prayer
+- Daily verse from the Quran
+- Ramadan countdown (when applicable)
+- Automatic zone detection via GPS
+
+### Prayer Times (/prayer-times)
+- Monthly prayer timetable for all Malaysian zones
+- Full schedule: Imsak, Fajr/Subuh, Sunrise/Syuruk, Dhuhr/Zohor, Asr/Asar, Maghrib, Isha/Isyak
+- Zone selector with 46 zones across Malaysia
+
+### Al-Quran (/quran)
 - Complete Quran with 114 Surahs and 30 Juz
 - Arabic text with transliteration and translation
-- Multiple language support (English and Malay)
-- Daily verse feature
+- Browse by Surah (/quran/surah/[1-114]) or Juz (/quran/juz/[1-30])
 
-### Islamic Calendar
+### Islamic Calendar (/islamic-calendar)
 - Important Islamic dates for 2026 based on JAKIM Malaysia
-- Countdown to upcoming Islamic events
-- Events include: Isra Mi'raj, Ramadan, Nuzul al-Quran, Eid al-Fitr, Eid al-Adha, Islamic New Year, Maulidur Rasul
+- Events: Isra Mi'raj, Ramadan, Nuzul al-Quran, Eid al-Fitr, Eid al-Adha, Islamic New Year, Maulidur Rasul
 
-### Waktu+ Display
-- Full-screen display mode for mosques and suraus
+### Waktu+ Display (/display)
+- Full-screen display mode designed for mosques and suraus
 - Live prayer times with large typography
 - Azan alerts and Iqamah countdown
 - Friday/Jumaah khutbah alerts
 - Customizable title and settings
 
-### Localization
-- Bilingual support: English and Bahasa Malaysia
+### Links (/links)
+- Quick access page to all Waktu+ features
+
+### Settings (/settings)
+- Language toggle: English and Bahasa Malaysia
+- Prayer zone selection
+
+## Localization
+- Bilingual: English and Bahasa Malaysia
 - Localized prayer names, dates, and UI elements
 - Islamic date display in Hijri calendar format
 
-## Technical Details
+## Technical Stack
 - Built with Next.js and React
 - Progressive Web App (PWA) support
 - Responsive design for mobile and desktop
-- Real-time updates with automatic refresh
+- Zustand for state management
 
 ## API Endpoints
-- /api/prayer - Prayer times data from JAKIM
-- /api/quran - Quran data from alquran.cloud API
-- /api/locate - Geolocation-based zone detection
-
-## Contact
-Website: https://waktuplus.vercel.app
+- /api/prayer — Prayer times data from JAKIM (waktusolat.app)
+- /api/quran — Quran data from alquran.cloud API
+- /api/locate — GPS-based prayer zone detection

@@ -119,7 +119,7 @@ export function PrayerTimesClientPage() {
     >
       <div style={{ padding: "16px" }}>
         <Link
-          href="/menu"
+          href="/"
           style={{
             display: "inline-flex",
             alignItems: "center",

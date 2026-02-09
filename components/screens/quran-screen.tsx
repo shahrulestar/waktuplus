@@ -2,17 +2,20 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Search } from "lucide-react"
+import { Search, Settings2 } from "lucide-react"
 import type { QuranApiResponse, QuranSurah } from "@/lib/types"
 import { useAppStore } from "@/lib/store"
 import { translations } from "@/lib/translations"
 import { getCachedData } from "@/lib/api-cache"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Switch } from "@/components/ui/switch"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 
 export function QuranScreen() {
-  const [viewMode, setViewMode] = useState<"juz" | "surah">("juz")
   const [searchQuery, setSearchQuery] = useState("")
   const [surahs, setSurahs] = useState<QuranSurah[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState("juz")
   const { language, showTransliteration, setShowTransliteration, showQuranTranslation, setShowQuranTranslation, quranTranslationLang, setQuranTranslationLang } = useAppStore()
   const t = translations[language]
 
@@ -27,7 +30,7 @@ export function QuranScreen() {
             if (!res.ok) throw new Error("Failed to fetch")
             return res.json()
           },
-          7 * 24 * 60 * 60 * 1000, // 7 hari (data Quran jarang berubah)
+          7 * 24 * 60 * 60 * 1000,
         )
         setSurahs(data?.data?.surahs || [])
       } catch (error) {
@@ -49,30 +52,6 @@ export function QuranScreen() {
   const juzData = Array.from({ length: 30 }, (_, i) => ({ number: i + 1, name: `${t.juz} ${i + 1}` }))
   const filteredJuz = juzData.filter((juz) => juz.number.toString().includes(searchQuery))
 
-  const secondaryButtonStyle = {
-    flex: 1,
-    padding: "10px 16px",
-    borderRadius: "8px",
-    fontSize: "14px",
-    fontWeight: 500,
-    cursor: "pointer",
-    backgroundColor: "#27272A",
-    color: "#ffffff",
-    border: "none",
-  }
-
-  const primaryButtonStyle = {
-    flex: 1,
-    padding: "10px 16px",
-    borderRadius: "8px",
-    fontSize: "14px",
-    fontWeight: 500,
-    cursor: "pointer",
-    backgroundColor: "#2563eb",
-    color: "#ffffff",
-    border: "none",
-  }
-
   const cardStyle = {
     display: "flex",
     alignItems: "center",
@@ -87,112 +66,8 @@ export function QuranScreen() {
     overflow: "hidden",
   }
 
-  return (
-    <div style={{ padding: "16px", backgroundColor: "#18181b", minHeight: "100%" }}>
-      <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px", color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.alQuran}</h1>
-
-      {/* Search */}
-      <div style={{ position: "relative", marginBottom: "16px" }}>
-        <Search
-          style={{
-            position: "absolute",
-            left: "12px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            width: "16px",
-            height: "16px",
-            color: "#71717a",
-          }}
-        />
-        <input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={viewMode === "juz" ? t.searchJuz : t.searchSurah}
-          style={{
-            width: "100%",
-            paddingLeft: "40px",
-            paddingRight: "16px",
-            backgroundColor: "#27272a",
-            border: "none",
-            color: "#ffffff",
-            fontSize: "14px",
-            borderRadius: "8px",
-            height: "40px",
-            outline: "none",
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-
-      {/* Language title, then Translation + Transliteration side by side, then English/Malay below */}
-      <p style={{ fontSize: "14px", color: "#ffffff", marginBottom: "12px" }}>{t.languageLabel}</p>
-
-      {/* Translation & Transliteration in one container, side by side, responsive */}
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "8px",
-          marginBottom: "12px",
-        }}
-      >
-        <button
-          onClick={() => setShowQuranTranslation(!showQuranTranslation)}
-          style={{
-            ...(showQuranTranslation ? primaryButtonStyle : secondaryButtonStyle),
-            flex: "1 1 0%",
-            minWidth: "120px",
-          }}
-        >
-          {t.translation} {showQuranTranslation ? t.on : t.off}
-        </button>
-        <button
-          onClick={() => setShowTransliteration(!showTransliteration)}
-          style={{
-            ...(showTransliteration ? primaryButtonStyle : secondaryButtonStyle),
-            flex: "1 1 0%",
-            minWidth: "120px",
-          }}
-        >
-          {t.transliteration} {showTransliteration ? t.on : t.off}
-        </button>
-      </div>
-
-      {/* English / Malay (below Translation & Transliteration) */}
-      {showQuranTranslation && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "16px" }}>
-          <button
-            onClick={() => setQuranTranslationLang("en")}
-            style={quranTranslationLang === "en" ? primaryButtonStyle : secondaryButtonStyle}
-          >
-            {t.english}
-          </button>
-          <button
-            onClick={() => setQuranTranslationLang("ms")}
-            style={quranTranslationLang === "ms" ? primaryButtonStyle : secondaryButtonStyle}
-          >
-            {t.bahasaMelayu}
-          </button>
-        </div>
-      )}
-
-      {/* Juz/Surah Toggle */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-        <button
-          onClick={() => setViewMode("juz")}
-          style={viewMode === "juz" ? primaryButtonStyle : secondaryButtonStyle}
-        >
-          {t.juzView}
-        </button>
-        <button
-          onClick={() => setViewMode("surah")}
-          style={viewMode === "surah" ? primaryButtonStyle : secondaryButtonStyle}
-        >
-          {t.surahView}
-        </button>
-      </div>
-
-      {/* List */}
+  const listContent = (
+    <>
       {isLoading ? (
         <div style={{ display: "flex", justifyContent: "center", padding: "32px 0" }}>
           <div
@@ -206,7 +81,7 @@ export function QuranScreen() {
             }}
           />
         </div>
-      ) : viewMode === "juz" ? (
+      ) : activeTab === "juz" ? (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
           {filteredJuz.map((juz) => (
             <Link key={juz.number} href={`/quran/juz/${juz.number}`} style={cardStyle}>
@@ -291,6 +166,156 @@ export function QuranScreen() {
           ))}
         </div>
       )}
+    </>
+  )
+
+  return (
+    <div style={{ padding: "16px", backgroundColor: "#18181b", minHeight: "100%" }}>
+      <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px", color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.alQuran}</h1>
+
+      {/* Search */}
+      <div style={{ position: "relative", marginBottom: "16px" }}>
+        <Search
+          style={{
+            position: "absolute",
+            left: "12px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: "16px",
+            height: "16px",
+            color: "#71717a",
+          }}
+        />
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={activeTab === "juz" ? t.searchJuz : t.searchSurah}
+          style={{
+            width: "100%",
+            paddingLeft: "40px",
+            paddingRight: "16px",
+            backgroundColor: "#27272a",
+            border: "none",
+            color: "#ffffff",
+            fontSize: "14px",
+            borderRadius: "8px",
+            height: "40px",
+            outline: "none",
+            boxSizing: "border-box",
+          }}
+        />
+      </div>
+
+      {/* Tabs row with settings icon */}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+          <TabsList className="bg-[#27272a] w-full">
+            <TabsTrigger
+              value="juz"
+              className="flex-1 data-[state=active]:bg-[#2563eb] data-[state=active]:text-white text-zinc-400 data-[state=active]:border-transparent"
+            >
+              {t.juz}
+            </TabsTrigger>
+            <TabsTrigger
+              value="surah"
+              className="flex-1 data-[state=active]:bg-[#2563eb] data-[state=active]:text-white text-zinc-400 data-[state=active]:border-transparent"
+            >
+              Surah
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              aria-label={t.settings}
+              title={t.settings}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "36px",
+                height: "36px",
+                borderRadius: "8px",
+                backgroundColor: "#27272a",
+                border: "none",
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
+            >
+              <Settings2 style={{ width: "18px", height: "18px", color: "#a1a1aa" }} />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="end"
+            className="bg-[#27272a] border-[#3f3f46] w-64"
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {/* Translation toggle */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "14px", color: "#ffffff" }}>{t.translation}</span>
+                <Switch
+                  checked={showQuranTranslation}
+                  onCheckedChange={setShowQuranTranslation}
+                />
+              </div>
+
+              {/* Translation language selector */}
+              {showQuranTranslation && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <span style={{ fontSize: "12px", color: "#71717a" }}>{t.languageLabel}</span>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      onClick={() => setQuranTranslationLang("en")}
+                      style={{
+                        flex: 1,
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        backgroundColor: quranTranslationLang === "en" ? "#2563eb" : "#3f3f46",
+                        color: "#ffffff",
+                        border: "none",
+                      }}
+                    >
+                      {t.english}
+                    </button>
+                    <button
+                      onClick={() => setQuranTranslationLang("ms")}
+                      style={{
+                        flex: 1,
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        backgroundColor: quranTranslationLang === "ms" ? "#2563eb" : "#3f3f46",
+                        color: "#ffffff",
+                        border: "none",
+                      }}
+                    >
+                      {t.bahasaMelayu}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Transliteration toggle */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "14px", color: "#ffffff" }}>{t.transliteration}</span>
+                <Switch
+                  checked={showTransliteration}
+                  onCheckedChange={setShowTransliteration}
+                />
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* List */}
+      {listContent}
     </div>
   )
 }

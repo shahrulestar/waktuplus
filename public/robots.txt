@@ -1,0 +1,12 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow API routes
+Disallow: /api/
+
+# Disallow internal pages
+Disallow: /pwa
+
+# Sitemap
+Sitemap: https://waktuplus.xyz/sitemap.xml

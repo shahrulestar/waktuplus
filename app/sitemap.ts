@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://waktuplus.vercel.app"
+  const baseUrl = "https://waktuplus.xyz"
 
-  return [
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -35,16 +35,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/menu`,
+      url: `${baseUrl}/links`,
       lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: 0.6,
+      priority: 0.5,
     },
     {
       url: `${baseUrl}/settings`,
       lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: 0.5,
+      priority: 0.3,
     },
   ]
+
+  // Generate Quran surah pages (1–114)
+  const surahRoutes: MetadataRoute.Sitemap = Array.from({ length: 114 }, (_, i) => ({
+    url: `${baseUrl}/quran/surah/${i + 1}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }))
+
+  // Generate Quran juz pages (1–30)
+  const juzRoutes: MetadataRoute.Sitemap = Array.from({ length: 30 }, (_, i) => ({
+    url: `${baseUrl}/quran/juz/${i + 1}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }))
+
+  return [...staticRoutes, ...surahRoutes, ...juzRoutes]
 }

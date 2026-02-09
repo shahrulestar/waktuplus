@@ -104,6 +104,7 @@ export function HomeScreen() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [nextPrayer, setNextPrayer] = useState<{ name: string; key: string; time: string; diff: string } | null>(null)
   const [todayPrayer, setTodayPrayer] = useState<PrayerData | null>(null)
+  const [weekPrayers, setWeekPrayers] = useState<PrayerData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAzanTime, setIsAzanTime] = useState(false)
   const [azanPrayer, setAzanPrayer] = useState<{ name: string; key: string } | null>(null)
@@ -133,17 +134,20 @@ export function HomeScreen() {
         
         if (data.prayers && Array.isArray(data.prayers) && data.prayers.length > 0) {
           const todayDate = new Date().toISOString().split("T")[0]
-          let prayer = data.prayers.find((p: PrayerData) => p.date === todayDate)
-          if (!prayer) {
-            const dayIndex = new Date().getDate() - 1
-            prayer = data.prayers[dayIndex] || data.prayers[0]
+          let todayIdx = data.prayers.findIndex((p: PrayerData) => p.date === todayDate)
+          if (todayIdx < 0) {
+            todayIdx = new Date().getDate() - 1
           }
+          const prayer = data.prayers[todayIdx] || data.prayers[0]
           if (prayer) {
             setTodayPrayer(prayer)
             if (prayer.hijri) {
               setHijriDate(formatHijriDate(prayer.hijri, language))
             }
           }
+          // Extract up to 7 days starting from today
+          const week = data.prayers.slice(todayIdx, todayIdx + 7)
+          setWeekPrayers(week)
         }
         setIsLoading(false)
       } catch (error) {
@@ -360,6 +364,7 @@ export function HomeScreen() {
 
       <PrayerTimeCard
         prayerTime={todayPrayer}
+        prayerTimes={weekPrayers}
         zoneName={zoneName}
         isLoading={isLoading}
         language={language}

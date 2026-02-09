@@ -126,6 +126,7 @@ export const translations = {
     resetAlert: "Reset",
     showZone: "Show Zone",
     sunriseIn: "Sunrise in",
+    themeColor: "Theme Color",
   },
   ms: {
     // Navigation
@@ -254,6 +255,7 @@ export const translations = {
     resetAlert: "Set Semula",
     showZone: "Papar Zon",
     sunriseIn: "Syuruk dalam",
+    themeColor: "Warna Tema",
   },
 }
 

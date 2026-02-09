@@ -169,7 +169,7 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
         </p>
         <p
           className="font-arabic"
-          style={{ textAlign: "right", fontSize: "24px", marginTop: "12px", color: "#ffffff" }}
+          style={{ textAlign: "right", fontSize: "28px", marginTop: "12px", color: "#ffffff" }}
           dir="rtl"
         >
           بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
@@ -211,7 +211,7 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
                 </div>
                 <p
                   className="font-arabic"
-                  style={{ fontSize: "20px", textAlign: "right", marginTop: "12px", color: "#ffffff", lineHeight: 2 }}
+                  style={{ fontSize: "28px", textAlign: "right", marginTop: "12px", color: "#ffffff", lineHeight: 2 }}
                   dir="rtl"
                 >
                   {ayah.text}

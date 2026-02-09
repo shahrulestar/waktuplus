@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     template: "%s | Waktu+",
   },
   description:
-    "A modern web-based prayer time display for mosques, with Quran and more accessible on mobile. No ads, no signup.",
+    "Prayer times, Al-Quran & Islamic calendar for Malaysia. Free, no ads, no signup.",
   keywords: [
     "prayer times",
     "waktu solat",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Waktu+ - Prayer Times & Al-Quran",
     description:
-      "A modern web-based prayer time display for mosques, with Quran and more accessible on mobile. No ads, no signup.",
+      "Prayer times, Al-Quran & Islamic calendar for Malaysia. Free, no ads, no signup.",
     url: "https://waktuplus.xyz",
     siteName: "Waktu+",
     type: "website",
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Waktu+ - Prayer Times & Al-Quran",
     description:
-      "A modern web-based prayer time display for mosques, with Quran and more accessible on mobile. No ads, no signup.",
+      "Prayer times, Al-Quran & Islamic calendar for Malaysia. Free, no ads, no signup.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     canonical: "https://waktuplus.xyz",
   },
   category: "religion",
-    generator: 'v0.app'
+    generator: 'Waktu+'
 }
 
 export const viewport: Viewport = {
