@@ -764,7 +764,7 @@ export function DisplayClient() {
                     width: "100%",
                     padding: "12px",
                     backgroundColor: "#27272a",
-                    border: "none",
+                    border: "1px solid #3f3f46",
                     borderRadius: "8px",
                     color: "#ffffff",
                     fontSize: "14px",
@@ -790,6 +790,7 @@ export function DisplayClient() {
                 </button>
                 {showZoneDropdown && (
                   <div
+                    className="scrollbar-hide"
                     style={{
                       position: "absolute",
                       top: "100%",
@@ -797,6 +798,7 @@ export function DisplayClient() {
                       right: 0,
                       backgroundColor: "#27272a",
                       borderRadius: "8px",
+                      border: "1px solid #3f3f46",
                       marginTop: "4px",
                       maxHeight: "200px",
                       overflowY: "auto",
@@ -938,7 +940,7 @@ export function DisplayClient() {
                     width: "100%",
                     padding: "12px",
                     backgroundColor: "#27272a",
-                    border: "none",
+                    border: "1px solid #3f3f46",
                     borderRadius: "8px",
                     color: "#ffffff",
                     fontSize: "14px",
@@ -962,6 +964,7 @@ export function DisplayClient() {
                 </button>
                 {showTestAlertDropdown && (
                   <div
+                    className="scrollbar-hide"
                     style={{
                       position: "absolute",
                       bottom: "100%",
@@ -969,6 +972,7 @@ export function DisplayClient() {
                       right: 0,
                       backgroundColor: "#27272a",
                       borderRadius: "8px",
+                      border: "1px solid #3f3f46",
                       marginBottom: "4px",
                       maxHeight: "200px",
                       overflowY: "auto",

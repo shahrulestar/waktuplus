@@ -318,7 +318,7 @@ export function HomeScreen() {
           overflow: "hidden",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           {isLoading ? (
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
               <Skeleton className="h-4 w-24 bg-white/20" />

@@ -51,15 +51,29 @@ export function SettingsScreen() {
         }
       },
       (error) => {
-        console.error("Geolocation error:", error)
+        console.error("Geolocation error:", error.code, error.message)
         setIsLocating(false)
-        alert(
-          language === "ms"
-            ? "Tidak dapat mendapatkan lokasi. Sila benarkan akses lokasi."
-            : "Unable to get location. Please allow location access.",
-        )
+        const messages: Record<number, { ms: string; en: string }> = {
+          1: {
+            ms: "Akses lokasi ditolak. Sila benarkan akses lokasi dalam tetapan pelayar.",
+            en: "Location access denied. Please allow location access in your browser settings.",
+          },
+          2: {
+            ms: "Lokasi tidak dapat dikesan. Sila pastikan GPS diaktifkan.",
+            en: "Location unavailable. Please make sure GPS is enabled.",
+          },
+          3: {
+            ms: "Permintaan lokasi tamat masa. Sila cuba lagi.",
+            en: "Location request timed out. Please try again.",
+          },
+        }
+        const msg = messages[error.code] || {
+          ms: "Tidak dapat mendapatkan lokasi. Sila benarkan akses lokasi.",
+          en: "Unable to get location. Please allow location access.",
+        }
+        alert(msg[language])
       },
-      { enableHighAccuracy: true, timeout: 10000 },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     )
   }
 
@@ -122,19 +136,19 @@ export function SettingsScreen() {
               backgroundColor: "#27272a",
               borderRadius: "8px",
               padding: "16px",
-              border: "none",
+              border: "1px solid #3f3f46",
               cursor: "pointer",
             }}
           >
             <span
               style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "flex-start",
                 fontSize: "14px",
                 color: "#ffffff",
-                width: "100%",
+                flex: 1,
                 textAlign: "left",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
               {currentZone?.code} - {currentZone?.name}
@@ -152,6 +166,7 @@ export function SettingsScreen() {
 
           {showZoneDropdown && (
             <div
+              className="scrollbar-hide"
               style={{
                 position: "absolute",
                 zIndex: 50,
@@ -159,6 +174,7 @@ export function SettingsScreen() {
                 marginTop: "8px",
                 backgroundColor: "#27272a",
                 borderRadius: "8px",
+                border: "1px solid #3f3f46",
                 maxHeight: "350px",
                 overflowY: "auto",
               }}

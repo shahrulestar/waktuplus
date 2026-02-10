@@ -169,7 +169,7 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
         </p>
         <p
           className="font-arabic"
-          style={{ textAlign: "right", fontSize: "28px", marginTop: "12px", color: "#ffffff" }}
+          style={{ textAlign: "right", fontSize: "32px", marginTop: "12px", color: "#ffffff" }}
           dir="rtl"
         >
           بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
@@ -180,7 +180,7 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
       </div>
 
       {/* Verses */}
-      <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "32px" }}>
         {currentAyahs.map((ayah, index) => {
           const trans = translation.find((t) => t.number === ayah.number)
           const translit = transliteration.find((t) => t.number === ayah.number)
@@ -211,7 +211,7 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
                 </div>
                 <p
                   className="font-arabic"
-                  style={{ fontSize: "28px", textAlign: "right", marginTop: "12px", color: "#ffffff", lineHeight: 2 }}
+                  style={{ fontSize: "32px", textAlign: "right", marginTop: "12px", color: "#ffffff", lineHeight: 2 }}
                   dir="rtl"
                 >
                   {ayah.text}

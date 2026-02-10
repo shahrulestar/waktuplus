@@ -145,7 +145,7 @@ export function PrayerTimesClientPage() {
           <p style={{ fontSize: "14px", color: "#ffffff", marginBottom: "8px" }}>{t.selectZone}</p>
           <div style={{ position: "relative" }}>
             <button
-              onClick={() => setShowZoneDropdown(!showZoneDropdown)}
+              onClick={() => { setShowZoneDropdown(!showZoneDropdown); setShowMonthDropdown(false) }}
               style={{
                 width: "100%",
                 display: "flex",
@@ -154,19 +154,19 @@ export function PrayerTimesClientPage() {
                 backgroundColor: "#27272a",
                 borderRadius: "8px",
                 padding: "16px",
-                border: "none",
+                border: "1px solid #3f3f46",
                 cursor: "pointer",
               }}
             >
               <span
                 style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "flex-start",
                   fontSize: "14px",
                   color: "#ffffff",
-                  width: "100%",
+                  flex: 1,
                   textAlign: "left",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {currentZone?.code} - {currentZone?.name}
@@ -184,6 +184,7 @@ export function PrayerTimesClientPage() {
 
             {showZoneDropdown && (
               <div
+                className="scrollbar-hide"
                 style={{
                   position: "absolute",
                   zIndex: 50,
@@ -191,6 +192,7 @@ export function PrayerTimesClientPage() {
                   marginTop: "8px",
                   backgroundColor: "#27272a",
                   borderRadius: "8px",
+                  border: "1px solid #3f3f46",
                   maxHeight: "350px",
                   overflowY: "auto",
                 }}
@@ -244,7 +246,7 @@ export function PrayerTimesClientPage() {
           <p style={{ fontSize: "14px", color: "#ffffff", marginBottom: "8px" }}>{t.selectMonth}</p>
           <div style={{ position: "relative" }}>
             <button
-              onClick={() => setShowMonthDropdown(!showMonthDropdown)}
+              onClick={() => { setShowMonthDropdown(!showMonthDropdown); setShowZoneDropdown(false) }}
               style={{
                 width: "100%",
                 display: "flex",
@@ -253,7 +255,7 @@ export function PrayerTimesClientPage() {
                 backgroundColor: "#27272a",
                 borderRadius: "8px",
                 padding: "16px",
-                border: "none",
+                border: "1px solid #3f3f46",
                 cursor: "pointer",
               }}
             >
@@ -273,6 +275,7 @@ export function PrayerTimesClientPage() {
 
             {showMonthDropdown && (
               <div
+                className="scrollbar-hide"
                 style={{
                   position: "absolute",
                   zIndex: 50,
@@ -280,6 +283,7 @@ export function PrayerTimesClientPage() {
                   marginTop: "8px",
                   backgroundColor: "#27272a",
                   borderRadius: "8px",
+                  border: "1px solid #3f3f46",
                   maxHeight: "350px",
                   overflowY: "auto",
                 }}

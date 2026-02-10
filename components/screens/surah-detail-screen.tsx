@@ -169,7 +169,7 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
         </p>
         <p
           className="font-arabic"
-          style={{ textAlign: "right", fontSize: "28px", marginTop: "12px", color: "#ffffff" }}
+          style={{ textAlign: "right", fontSize: "32px", marginTop: "12px", color: "#ffffff" }}
           dir="rtl"
         >
           بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
@@ -180,7 +180,7 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
       </div>
 
       {/* Verses */}
-      <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "32px" }}>
         {currentAyahs.map((ayah) => {
           const trans = translation.find((t) => t.numberInSurah === ayah.numberInSurah)
           const translit = transliteration.find((t) => t.numberInSurah === ayah.numberInSurah)
@@ -211,7 +211,7 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
                 </div>
                 <p
                   className="font-arabic"
-                  style={{ fontSize: "28px", textAlign: "right", marginTop: "12px", color: "#ffffff", lineHeight: 2 }}
+                  style={{ fontSize: "32px", textAlign: "right", marginTop: "12px", color: "#ffffff", lineHeight: 2 }}
                   dir="rtl"
                 >
                   {ayah.text}

@@ -148,3 +148,12 @@
   font-family: "Amiri", "Scheherazade New", "Traditional Arabic", serif;
   line-height: 2;
 }
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
