@@ -8,7 +8,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Islamic Calendar 2026 | Waktu+",
     description: "Important Islamic dates and holidays in Malaysia for 2026",
-    images: ["/og-image.png"],
+    url: "https://waktuplus.xyz/islamic-calendar",
+    images: [
+      { url: "/main.png", width: 1200, height: 630, alt: "Waktu+ Islamic Calendar" },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/main.png"],
   },
 }
 

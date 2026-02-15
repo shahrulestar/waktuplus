@@ -15,7 +15,13 @@ export async function generateMetadata({ params }: JuzPageProps): Promise<Metada
       title: `Juz ${number} | Al-Quran | Waktu+`,
       description: `Read Juz ${number} with translations and transliteration`,
       url: `https://waktuplus.xyz/quran/juz/${number}`,
-      images: ["/og-image.png"],
+      images: [
+        { url: "/main.png", width: 1200, height: 630, alt: `Juz ${number} | Waktu+` },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: ["/main.png"],
     },
   }
 }

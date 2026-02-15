@@ -1,18 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown } from "lucide-react"
 import { useAppStore } from "@/lib/store"
-import { prayerZones, zonesByState } from "@/lib/prayer-zones"
+import { ZoneSelector } from "@/components/zone-selector"
 import { translations } from "@/lib/translations"
 
 export function SettingsScreen() {
   const { selectedZone, setSelectedZone, language, setLanguage } = useAppStore()
   const t = translations[language]
-  const [showZoneDropdown, setShowZoneDropdown] = useState(false)
   const [isLocating, setIsLocating] = useState(false)
-
-  const currentZone = prayerZones.find((z) => z.code === selectedZone)
 
   const handleLocateMe = () => {
     if (!navigator.geolocation) {
@@ -31,10 +27,8 @@ export function SettingsScreen() {
             const data = await res.json()
             if (data.zone) {
               setSelectedZone(data.zone)
-              setShowZoneDropdown(false)
             } else if (data.code) {
               setSelectedZone(data.code)
-              setShowZoneDropdown(false)
             }
           } else {
             throw new Error("API error")
@@ -101,23 +95,6 @@ export function SettingsScreen() {
     border: "none",
   }
 
-  const stateOrder = [
-    "Johor",
-    "Kedah",
-    "Kelantan",
-    "Melaka",
-    "Negeri Sembilan",
-    "Pahang",
-    "Perak",
-    "Perlis",
-    "Pulau Pinang",
-    "Sabah",
-    "Sarawak",
-    "Selangor",
-    "Terengganu",
-    "Wilayah Persekutuan",
-  ]
-
   return (
     <div style={{ padding: "16px", backgroundColor: "#18181b", minHeight: "100%" }}>
       <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "24px", color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.settings}</h1>
@@ -125,105 +102,7 @@ export function SettingsScreen() {
       {/* Prayer Zone */}
       <div style={{ marginBottom: "24px" }}>
         <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "12px", color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.prayerZone}</h2>
-        <div style={{ position: "relative" }}>
-          <button
-            onClick={() => setShowZoneDropdown(!showZoneDropdown)}
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              backgroundColor: "#27272a",
-              borderRadius: "8px",
-              padding: "16px",
-              border: "1px solid #3f3f46",
-              cursor: "pointer",
-            }}
-          >
-            <span
-              style={{
-                fontSize: "14px",
-                color: "#ffffff",
-                flex: 1,
-                textAlign: "left",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {currentZone?.code} - {currentZone?.name}
-            </span>
-            <ChevronDown
-              style={{
-                width: "20px",
-                height: "20px",
-                color: "#ffffff",
-                transform: showZoneDropdown ? "rotate(180deg)" : "rotate(0deg)",
-                transition: "transform 0.2s",
-              }}
-            />
-          </button>
-
-          {showZoneDropdown && (
-            <div
-              className="scrollbar-hide"
-              style={{
-                position: "absolute",
-                zIndex: 50,
-                width: "100%",
-                marginTop: "8px",
-                backgroundColor: "#27272a",
-                borderRadius: "8px",
-                border: "1px solid #3f3f46",
-                maxHeight: "350px",
-                overflowY: "auto",
-              }}
-            >
-              {stateOrder.map((state) => {
-                const zones = zonesByState[state]
-                if (!zones || zones.length === 0) return null
-                return (
-                  <div key={state}>
-                    <div
-                      style={{
-                        padding: "12px",
-                        fontSize: "12px",
-                        fontWeight: 600,
-                        color: "#3b82f6",
-                        backgroundColor: "#1f1f23",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      {state}
-                    </div>
-                    {zones.map((zone) => (
-                      <button
-                        key={zone.code}
-                        onClick={() => {
-                          setSelectedZone(zone.code)
-                          setShowZoneDropdown(false)
-                        }}
-                        style={{
-                          width: "100%",
-                          textAlign: "left",
-                          padding: "12px",
-                          fontSize: "14px",
-                          color: zone.code === selectedZone ? "#3b82f6" : "#ffffff",
-                          background: zone.code === selectedZone ? "#1f1f23" : "none",
-                          border: "none",
-                          cursor: "pointer",
-                        }}
-                      >
-                        {zone.code}: {zone.name}
-                      </button>
-                    ))}
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
+        <ZoneSelector value={selectedZone} onChange={setSelectedZone} />
         <button
           onClick={handleLocateMe}
           disabled={isLocating}

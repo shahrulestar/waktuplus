@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/og-image.png",
+        url: "/main.png",
         width: 1200,
         height: 630,
         alt: "Waktu+ - Prayer Times & Al-Quran",
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
     title: "Waktu+ - Prayer Times & Al-Quran",
     description:
       "Prayer times, Al-Quran & Islamic calendar for Malaysia. Free, no ads, no signup.",
-    images: ["/og-image.png"],
+    images: ["/main.png"],
   },
   robots: {
     index: true,
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     canonical: "https://waktuplus.xyz",
   },
   category: "religion",
-    generator: 'Waktu+'
+  generator: "Waktu+",
 }
 
 export const viewport: Viewport = {

@@ -10,7 +10,13 @@ export const metadata: Metadata = {
     title: "Waktu+ - Prayer Times & Al-Quran",
     description: "Your complete Islamic companion app with accurate prayer times and Al-Quran",
     url: "https://waktuplus.xyz",
-    images: ["/og-image.png"],
+    images: [
+      { url: "/main.png", width: 1200, height: 630, alt: "Waktu+ - Prayer Times & Al-Quran" },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/main.png"],
   },
 }
 

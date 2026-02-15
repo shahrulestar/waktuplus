@@ -10,7 +10,13 @@ export const metadata: Metadata = {
     title: "Al-Quran | Waktu+",
     description: "Read the Holy Quran with translations in English and Bahasa Melayu",
     url: "https://waktuplus.xyz/quran",
-    images: ["/og-image.png"],
+    images: [
+      { url: "/main.png", width: 1200, height: 630, alt: "Waktu+ Al-Quran" },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/main.png"],
   },
 }
 

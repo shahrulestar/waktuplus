@@ -9,6 +9,13 @@ export const metadata: Metadata = {
     description: "Full-screen live prayer times display for mosques and suraus",
     url: "https://waktuplus.xyz/display",
     siteName: "Waktu+",
+    images: [
+      { url: "/display.png", width: 1200, height: 630, alt: "Waktu+ Display - Live Prayer Times" },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/display.png"],
   },
 }
 

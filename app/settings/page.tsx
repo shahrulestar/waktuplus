@@ -10,7 +10,13 @@ export const metadata: Metadata = {
     title: "Settings | Waktu+",
     description: "Customize your Waktu+ prayer times and app settings",
     url: "https://waktuplus.xyz/settings",
-    images: ["/og-image.png"],
+    images: [
+      { url: "/main.png", width: 1200, height: 630, alt: "Waktu+ Settings" },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/main.png"],
   },
 }
 

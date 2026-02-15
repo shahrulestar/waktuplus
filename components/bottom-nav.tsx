@@ -52,7 +52,13 @@ export function BottomNav({ activeScreen }: BottomNavProps) {
               {language === "ms" ? "Terokai ciri-ciri Waktu+" : "Explore Waktu+ features"}
             </DrawerDescription>
           </DrawerHeader>
-          <div style={{ display: "flex", flexDirection: "column", padding: "0 16px 16px" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              padding: "0 16px calc(16px + env(safe-area-inset-bottom, 0px))",
+            }}
+          >
             {menuItems.map((item) => {
               const Icon = item.icon
               return (

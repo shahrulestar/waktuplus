@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from "react"
 import { Moon, Sun, Sunrise, SunDim, Sunset, CloudSun, Settings, AlertTriangle, ChevronDown } from "lucide-react"
 import { useAppStore } from "@/lib/store"
-import { prayerZones, zonesByState } from "@/lib/prayer-zones"
+import { prayerZones } from "@/lib/prayer-zones"
+import { ZoneSelector } from "@/components/zone-selector"
 import { translations } from "@/lib/translations"
 import { formatSmartCountdown } from "@/lib/countdown-utils"
 import { getCachedData } from "@/lib/api-cache"
@@ -114,23 +115,6 @@ function getPrayerName(key: string, language: "en" | "ms", isFriday: boolean): s
   return t[key as keyof typeof t] as string
 }
 
-const stateOrder = [
-  "Johor",
-  "Kedah",
-  "Kelantan",
-  "Melaka",
-  "Negeri Sembilan",
-  "Pahang",
-  "Perak",
-  "Perlis",
-  "Pulau Pinang",
-  "Sabah",
-  "Sarawak",
-  "Selangor",
-  "Terengganu",
-  "Wilayah Persekutuan",
-]
-
 export function DisplayClient() {
   const { selectedZone, setSelectedZone, language, setLanguage } = useAppStore()
   const t = translations[language]
@@ -139,7 +123,6 @@ export function DisplayClient() {
   const [nextPrayerKey, setNextPrayerKey] = useState<string | null>(null)
   const [countdown, setCountdown] = useState<string>("")
   const [showSettings, setShowSettings] = useState(false)
-  const [showZoneDropdown, setShowZoneDropdown] = useState(false)
   const [settingsVisible, setSettingsVisible] = useState(true)
   const [lastMouseMove, setLastMouseMove] = useState(Date.now())
   const [customTitle, setCustomTitle] = useState("")
@@ -463,7 +446,6 @@ export function DisplayClient() {
       console.error("Failed to save theme color:", e)
     }
     setShowSettings(false)
-    setShowZoneDropdown(false)
     setShowTestAlertDropdown(false)
   }
 
@@ -471,8 +453,6 @@ export function DisplayClient() {
   const prayerTimes = todayPrayer
     ? [todayPrayer.fajr, todayPrayer.syuruk, todayPrayer.dhuhr, todayPrayer.asr, todayPrayer.maghrib, todayPrayer.isha]
     : ["--:--", "--:--", "--:--", "--:--", "--:--", "--:--"]
-
-  const tempZoneInfo = prayerZones.find((z) => z.code === tempZone)
 
   const isWithin15Mins = alertState.type === "azan_countdown" || alertState.type === "azan_now"
 
@@ -680,8 +660,7 @@ export function DisplayClient() {
             zIndex: 50,
           }}
           onClick={() => {
-            setShowSettings(false)
-            setShowZoneDropdown(false)
+    setShowSettings(false)
             setShowTestAlertDropdown(false)
           }}
         >
@@ -754,96 +733,7 @@ export function DisplayClient() {
               <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
                 {t.prayerZone}
               </label>
-              <div style={{ position: "relative" }}>
-                <button
-                  onClick={() => {
-                    setShowZoneDropdown(!showZoneDropdown)
-                    setShowTestAlertDropdown(false)
-                  }}
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    backgroundColor: "#27272a",
-                    border: "1px solid #3f3f46",
-                    borderRadius: "8px",
-                    color: "#ffffff",
-                    fontSize: "14px",
-                    textAlign: "left",
-                    cursor: "pointer",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
-                    {tempZoneInfo ? `${tempZoneInfo.code} - ${tempZoneInfo.name}` : tempZone}
-                  </span>
-                  <ChevronDown
-                    style={{
-                      width: "16px",
-                      height: "16px",
-                      flexShrink: 0,
-                      transform: showZoneDropdown ? "rotate(180deg)" : "rotate(0deg)",
-                      transition: "transform 0.2s",
-                    }}
-                  />
-                </button>
-                {showZoneDropdown && (
-                  <div
-                    className="scrollbar-hide"
-                    style={{
-                      position: "absolute",
-                      top: "100%",
-                      left: 0,
-                      right: 0,
-                      backgroundColor: "#27272a",
-                      borderRadius: "8px",
-                      border: "1px solid #3f3f46",
-                      marginTop: "4px",
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                      zIndex: 10,
-                    }}
-                  >
-                    {stateOrder.map((state) => (
-                      <div key={state}>
-                        <div
-                          style={{
-                            padding: "8px 12px",
-                            fontSize: "12px",
-                            color: "#3b82f6",
-                            fontWeight: 600,
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          {state}
-                        </div>
-                        {zonesByState[state]?.map((zone) => (
-                          <button
-                            key={zone.code}
-                            onClick={() => {
-                              setTempZone(zone.code)
-                              setShowZoneDropdown(false)
-                            }}
-                            style={{
-                              width: "100%",
-                              padding: "8px 12px",
-                              backgroundColor: tempZone === zone.code ? "#3b82f6" : "transparent",
-                              border: "none",
-                              color: "#ffffff",
-                              fontSize: "14px",
-                              textAlign: "left",
-                              cursor: "pointer",
-                            }}
-                          >
-                            {zone.code}: {zone.name}
-                          </button>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <ZoneSelector value={tempZone} onChange={setTempZone} />
             </div>
 
             <div style={{ marginBottom: "16px" }}>
@@ -932,10 +822,7 @@ export function DisplayClient() {
               </label>
               <div style={{ position: "relative" }}>
                 <button
-                  onClick={() => {
-                    setShowTestAlertDropdown(!showTestAlertDropdown)
-                    setShowZoneDropdown(false)
-                  }}
+                  onClick={() => setShowTestAlertDropdown(!showTestAlertDropdown)}
                   style={{
                     width: "100%",
                     padding: "12px",

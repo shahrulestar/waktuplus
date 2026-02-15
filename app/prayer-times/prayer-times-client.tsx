@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ChevronLeft, ChevronDown } from "lucide-react"
 import { useAppStore } from "@/lib/store"
-import { prayerZones, zonesByState } from "@/lib/prayer-zones"
+import { ZoneSelector } from "@/components/zone-selector"
 import { getCachedData } from "@/lib/api-cache"
 import { translations } from "@/lib/translations"
 import { BottomNav } from "@/components/bottom-nav"
@@ -37,23 +37,6 @@ const months = [
   { value: 12, key: "december" },
 ] as const
 
-const stateOrder = [
-  "Johor",
-  "Kedah",
-  "Kelantan",
-  "Melaka",
-  "Negeri Sembilan",
-  "Pahang",
-  "Perak",
-  "Perlis",
-  "Pulau Pinang",
-  "Sabah",
-  "Sarawak",
-  "Selangor",
-  "Terengganu",
-  "Wilayah Persekutuan",
-]
-
 export function PrayerTimesClientPage() {
   const { selectedZone, setSelectedZone, language } = useAppStore()
   const t = translations[language]
@@ -66,10 +49,7 @@ export function PrayerTimesClientPage() {
   const [month, setMonth] = useState(currentMonth)
   const [prayers, setPrayers] = useState<PrayerDay[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [showZoneDropdown, setShowZoneDropdown] = useState(false)
   const [showMonthDropdown, setShowMonthDropdown] = useState(false)
-
-  const currentZone = prayerZones.find((z) => z.code === zone)
 
   useEffect(() => {
     const fetchPrayers = async () => {
@@ -102,7 +82,6 @@ export function PrayerTimesClientPage() {
   const handleZoneChange = (newZone: string) => {
     setZone(newZone)
     setSelectedZone(newZone)
-    setShowZoneDropdown(false)
   }
 
   const labelColor = "#3B82F6"
@@ -143,102 +122,7 @@ export function PrayerTimesClientPage() {
         {/* Zone Dropdown */}
         <div style={{ marginBottom: "16px" }}>
           <p style={{ fontSize: "14px", color: "#ffffff", marginBottom: "8px" }}>{t.selectZone}</p>
-          <div style={{ position: "relative" }}>
-            <button
-              onClick={() => { setShowZoneDropdown(!showZoneDropdown); setShowMonthDropdown(false) }}
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                backgroundColor: "#27272a",
-                borderRadius: "8px",
-                padding: "16px",
-                border: "1px solid #3f3f46",
-                cursor: "pointer",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "14px",
-                  color: "#ffffff",
-                  flex: 1,
-                  textAlign: "left",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {currentZone?.code} - {currentZone?.name}
-              </span>
-              <ChevronDown
-                style={{
-                  width: "20px",
-                  height: "20px",
-                  color: "#ffffff",
-                  transform: showZoneDropdown ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "transform 0.2s",
-                }}
-              />
-            </button>
-
-            {showZoneDropdown && (
-              <div
-                className="scrollbar-hide"
-                style={{
-                  position: "absolute",
-                  zIndex: 50,
-                  width: "100%",
-                  marginTop: "8px",
-                  backgroundColor: "#27272a",
-                  borderRadius: "8px",
-                  border: "1px solid #3f3f46",
-                  maxHeight: "350px",
-                  overflowY: "auto",
-                }}
-              >
-                {stateOrder.map((state) => {
-                  const zones = zonesByState[state]
-                  if (!zones || zones.length === 0) return null
-                  return (
-                    <div key={state}>
-                      <div
-                        style={{
-                          padding: "12px",
-                          fontSize: "12px",
-                          fontWeight: 600,
-                          color: "#3b82f6",
-                          backgroundColor: "#1f1f23",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                        }}
-                      >
-                        {state}
-                      </div>
-                      {zones.map((z) => (
-                        <button
-                          key={z.code}
-                          onClick={() => handleZoneChange(z.code)}
-                          style={{
-                            width: "100%",
-                            textAlign: "left",
-                            padding: "12px",
-                            fontSize: "14px",
-                            color: z.code === zone ? "#3b82f6" : "#ffffff",
-                            background: z.code === zone ? "#1f1f23" : "none",
-                            border: "none",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {z.code}: {z.name}
-                        </button>
-                      ))}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
+          <ZoneSelector value={zone} onChange={handleZoneChange} />
         </div>
 
         {/* Month Dropdown */}
