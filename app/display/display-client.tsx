@@ -38,6 +38,7 @@ type AlertState =
   | { type: "iqamah"; minutes: number }
   | { type: "khutbah_countdown"; minutes: number }
   | { type: "khutbah_quiet" }
+  | { type: "sunrise_countdown"; minutes: number }
 
 type TestAlertType = "none" | "azan_countdown" | "azan_now" | "iqamah" | "khutbah_countdown" | "khutbah_quiet"
 
@@ -173,6 +174,7 @@ export function DisplayClient() {
   const [isTestingAzan, setIsTestingAzan] = useState(false)
   const azanAudioRef = useRef<HTMLAudioElement | null>(null)
   const inPostAzanWindowRef = useRef(false)
+  const timeOffsetRef = useRef(0)
   const [isLocating, setIsLocating] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -389,8 +391,27 @@ export function DisplayClient() {
   }, [currentTime, todayPrayer, allPrayers, language])
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
-    return () => clearInterval(timer)
+    const syncTime = async () => {
+      try {
+        const res = await fetch("/api/time")
+        if (res.ok) {
+          const data = (await res.json()) as { unixtime: number }
+          timeOffsetRef.current = data.unixtime * 1000 - Date.now()
+        }
+      } catch {
+        timeOffsetRef.current = 0
+      }
+    }
+    syncTime()
+    const syncInterval = setInterval(syncTime, 5 * 60 * 1000)
+    const timer = setInterval(
+      () => setCurrentTime(new Date(Date.now() + timeOffsetRef.current)),
+      1000,
+    )
+    return () => {
+      clearInterval(timer)
+      clearInterval(syncInterval)
+    }
   }, [])
 
   const countdownLabels = {
@@ -496,7 +517,7 @@ export function DisplayClient() {
 
       const minutesSincePrayer = currentMinutes - prayerMinutes + (currentSeconds > 0 ? 1 : 0)
 
-      if (minutesSincePrayer >= 0 && minutesSincePrayer < 6) {
+      if (minutesSincePrayer >= 0 && minutesSincePrayer < 5) {
         setNextPrayerKey(prayerKeysForAlerts[i])
         setCountdown(t.azanNow)
         const prayerName = getPrayerName(
@@ -511,9 +532,9 @@ export function DisplayClient() {
         return
       }
 
-      if (minutesSincePrayer >= 6 && minutesSincePrayer < 16) {
+      if (minutesSincePrayer >= 5 && minutesSincePrayer < 15) {
         inPostAzanWindowRef.current = true
-        const iqamahRemaining = 16 - minutesSincePrayer
+        const iqamahRemaining = 15 - minutesSincePrayer
 
         // Friday/Jumaah: skip iqamah, go straight to khutbah countdown (12 mins)
         if (isFriday && prayerKeysForAlerts[i] === "zohor") {
@@ -530,7 +551,7 @@ export function DisplayClient() {
           }
           setAlertState(
             enabledAlerts.khutbah_countdown
-              ? { type: "khutbah_countdown", minutes: 18 - minutesSincePrayer }
+              ? { type: "khutbah_countdown", minutes: 17 - minutesSincePrayer }
               : { type: "none" },
           )
           return
@@ -561,16 +582,46 @@ export function DisplayClient() {
             setCountdown(formatSmartCountdown(totalSecs, translations[language]))
           }
         }
-        setAlertState(
-          enabledAlerts.iqamah
-            ? { type: "iqamah", minutes: iqamahRemaining }
-            : { type: "none" },
-        )
+        if (enabledAlerts.iqamah) {
+          setAlertState({ type: "iqamah", minutes: iqamahRemaining })
+        } else if (prayerKeysForAlerts[i] === "subuh") {
+          const syurukTime = todayPrayer.syuruk
+          if (syurukTime && syurukTime.includes(":")) {
+            const [sH, sM] = syurukTime.split(":").map(Number)
+            const syurukMinutes = sH * 60 + sM
+            if (currentMinutes < syurukMinutes) {
+              setNextPrayerKey("syuruk")
+              const totalSecs = (syurukMinutes - currentMinutes) * 60 - currentSeconds
+              setCountdown(formatSmartCountdown(totalSecs, translations[language]))
+              setAlertState({ type: "sunrise_countdown", minutes: Math.max(1, Math.ceil(totalSecs / 60)) })
+              setIqamahForPrayer(null)
+              return
+            }
+          }
+          setAlertState({ type: "none" })
+        } else {
+          setAlertState({ type: "none" })
+        }
         setIqamahForPrayer(null)
         return
       }
 
-      if (isFriday && prayerKeysForAlerts[i] === "zohor" && minutesSincePrayer >= 18 && minutesSincePrayer < 48) {
+      if (prayerKeysForAlerts[i] === "subuh" && minutesSincePrayer >= 15) {
+        const syurukTime = todayPrayer.syuruk
+        if (syurukTime && syurukTime.includes(":")) {
+          const [sH, sM] = syurukTime.split(":").map(Number)
+          const syurukMinutes = sH * 60 + sM
+          if (currentMinutes < syurukMinutes) {
+            setNextPrayerKey("syuruk")
+            const totalSecs = (syurukMinutes - currentMinutes) * 60 - currentSeconds
+            setCountdown(formatSmartCountdown(totalSecs, translations[language]))
+            setAlertState({ type: "sunrise_countdown", minutes: Math.max(1, Math.ceil(totalSecs / 60)) })
+            return
+          }
+        }
+      }
+
+      if (isFriday && prayerKeysForAlerts[i] === "zohor" && minutesSincePrayer >= 17 && minutesSincePrayer < 47) {
         const nextIdx = allPrayerKeys.indexOf("asar")
         if (nextIdx !== -1) {
           setNextPrayerKey("asar")
@@ -719,7 +770,7 @@ export function DisplayClient() {
     : ["00:00", "00:00", "00:00", "00:00", "00:00", "00:00"]
 
   const isWithin15Mins = alertState.type === "azan_countdown" || alertState.type === "azan_now"
-  const hasAlert = alertState.type !== "none"
+  const hasAlert = alertState.type !== "none" && alertState.type !== "sunrise_countdown"
   const isAzanPlaying = alertState.type === "azan_now" && !testMode
 
   const testAlertOptions: { value: TestAlertType; label: string }[] = [
@@ -742,7 +793,7 @@ export function DisplayClient() {
   }
 
   const renderAlert = () => {
-    if (alertState.type === "none") return null
+    if (alertState.type === "none" || alertState.type === "sunrise_countdown") return null
 
     let alertText = ""
     switch (alertState.type) {
@@ -958,12 +1009,14 @@ export function DisplayClient() {
           const isNext = key === nextPrayerKey
           const prayerName = getPrayerName(key, language, isFriday && key === "zohor")
           const isSyuruk = key === "syuruk"
+          const isSunriseCountdown = alertState.type === "sunrise_countdown" && isSyuruk
 
           const showCountdown = isNext && (
             !isWithin15Mins ||
             alertState.type === "iqamah" ||
             alertState.type === "khutbah_countdown" ||
-            alertState.type === "khutbah_quiet"
+            alertState.type === "khutbah_quiet" ||
+            (alertState.type === "sunrise_countdown" && !isSyuruk)
           )
 
           const cardScale = hasAlert ? 0.85 : 1
