@@ -557,6 +557,7 @@ export function DisplayClient() {
             textAlign: "center",
             lineHeight: 1.2,
             wordBreak: "break-word",
+            fontFamily: '"Satoshi", system-ui, sans-serif',
           }}
         >
           {alertText}
@@ -609,6 +610,7 @@ export function DisplayClient() {
             display: "flex",
             flexDirection: "column",
             boxSizing: "border-box",
+            fontFamily: '"Satoshi", system-ui, sans-serif',
           }}
         >
       <div
@@ -780,6 +782,7 @@ export function DisplayClient() {
               maxHeight: "80vh",
               overflowY: "auto",
               position: "relative",
+              fontFamily: '"Satoshi", system-ui, sans-serif',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -804,6 +807,7 @@ export function DisplayClient() {
                   fontSize: "14px",
                   outline: "none",
                   boxSizing: "border-box",
+                  fontFamily: '"Satoshi", system-ui, sans-serif',
                 }}
               />
             </div>
