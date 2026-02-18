@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { Moon, Sun, Sunrise, SunDim, Sunset, CloudSun, Settings, AlertTriangle, ChevronDown } from "lucide-react"
 import { useAppStore } from "@/lib/store"
 import { prayerZones } from "@/lib/prayer-zones"
@@ -62,33 +62,11 @@ function formatHijriDate(hijriStr: string | undefined, language: "en" | "ms"): s
   const day = Number.parseInt(parts[2], 10)
 
   const monthNamesMs = [
-    "Muharam",
-    "Safar",
-    "Rabiul Awal",
-    "Rabiul Akhir",
-    "Jamadil Awal",
-    "Jamadil Akhir",
-    "Rejab",
-    "Syaaban",
-    "Ramadan",
-    "Syawal",
-    "Zulkaedah",
-    "Zulhijjah",
+    "Muh", "Saf", "RAb", "RAk", "JAw", "JAk", "Rej", "Sya", "Ram", "Syw", "Zul", "Zhj",
   ]
 
   const monthNamesEn = [
-    "Muharram",
-    "Safar",
-    "Rabi' al-Awwal",
-    "Rabi' al-Akhir",
-    "Jumada al-Ula",
-    "Jumada al-Akhirah",
-    "Rajab",
-    "Sha'ban",
-    "Ramadan",
-    "Shawwal",
-    "Dhul-Qa'dah",
-    "Dhul-Hijjah",
+    "Muh", "Saf", "Rab", "Rak", "Jul", "Jak", "Raj", "Sha", "Ram", "Shw", "Dha", "Dhj",
   ]
 
   const monthNames = language === "ms" ? monthNamesMs : monthNamesEn
@@ -102,7 +80,7 @@ function formatGregorianDate(language: "en" | "ms"): string {
   return new Date().toLocaleDateString(locale, {
     weekday: "long",
     day: "numeric",
-    month: "long",
+    month: "short",
     year: "numeric",
   })
 }
@@ -135,18 +113,54 @@ export function DisplayClient() {
   const [tempShowZone, setTempShowZone] = useState(true)
   const [showTestAlertDropdown, setShowTestAlertDropdown] = useState(false)
   const [hijriDate, setHijriDate] = useState<string>("")
+  const [allPrayers, setAllPrayers] = useState<PrayerData[]>([])
   const [iqamahForPrayer, setIqamahForPrayer] = useState<string | null>(null)
   const [themeColor, setThemeColor] = useState<ThemeColor>("blue")
   const [tempThemeColor, setTempThemeColor] = useState<ThemeColor>("blue")
+  const contentRef = useRef<HTMLDivElement>(null)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const PADDING = 24
+  const [scale, setScale] = useState(1)
+
+  // Scale based on fixed 1920x1080 design so resolution stays consistent when alert shows
+  useEffect(() => {
+    const wrapperEl = wrapperRef.current
+    if (!wrapperEl) return
+
+    const REF_WIDTH = 1920
+    const REF_HEIGHT = 1080
+
+    const updateScale = () => {
+      const availableWidth = wrapperEl.clientWidth || window.innerWidth - PADDING * 2
+      const availableHeight = wrapperEl.clientHeight || window.innerHeight - PADDING * 2
+      const scaleX = availableWidth / REF_WIDTH
+      const scaleY = availableHeight / REF_HEIGHT
+      setScale(Math.min(scaleX, scaleY))
+    }
+
+    updateScale()
+    const ro = new ResizeObserver(updateScale)
+    ro.observe(wrapperEl)
+    window.addEventListener("resize", updateScale)
+
+    return () => {
+      ro.disconnect()
+      window.removeEventListener("resize", updateScale)
+    }
+  }, [])
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("waktu-display-theme")
-      if (stored && stored in themeColorMap) {
-        setThemeColor(stored as ThemeColor)
+      const storedTheme = localStorage.getItem("waktu-display-theme")
+      if (storedTheme && storedTheme in themeColorMap) {
+        setThemeColor(storedTheme as ThemeColor)
+      }
+      const storedShowZone = localStorage.getItem("waktu-display-show-zone")
+      if (storedShowZone !== null) {
+        setShowZone(storedShowZone === "true")
       }
     } catch (e) {
-      console.error("Failed to read theme color:", e)
+      console.error("Failed to read display settings:", e)
     }
   }, [])
 
@@ -190,13 +204,11 @@ export function DisplayClient() {
         )
         
         if (data.prayers && Array.isArray(data.prayers) && data.prayers.length > 0) {
+          setAllPrayers(data.prayers)
           const dayIndex = new Date().getDate() - 1
           const prayer = data.prayers[dayIndex] || data.prayers[0]
           if (prayer) {
             setTodayPrayer(prayer)
-            if (prayer.hijri) {
-              setHijriDate(formatHijriDate(prayer.hijri, language))
-            }
           }
         }
       } catch (error) {
@@ -208,11 +220,31 @@ export function DisplayClient() {
     return () => clearInterval(interval)
   }, [selectedZone, language])
 
+  // Hijri day starts at Maghrib; use next day's hijri when Maghrib has passed
   useEffect(() => {
-    if (todayPrayer?.hijri) {
+    if (!todayPrayer?.hijri || allPrayers.length === 0) return
+
+    const maghribStr = todayPrayer.maghrib
+    if (!maghribStr || !maghribStr.includes(":")) {
       setHijriDate(formatHijriDate(todayPrayer.hijri, language))
+      return
     }
-  }, [language, todayPrayer?.hijri])
+
+    const [maghribH, maghribM] = maghribStr.split(":").map(Number)
+    const maghribMinutes = (maghribH ?? 0) * 60 + (maghribM ?? 0)
+    const now = currentTime
+    const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60
+
+    const dayIndex = now.getDate() - 1
+    const isAfterMaghrib = currentMinutes >= maghribMinutes
+    const prayerForHijri = isAfterMaghrib && dayIndex + 1 < allPrayers.length
+      ? allPrayers[dayIndex + 1]
+      : todayPrayer
+
+    if (prayerForHijri?.hijri) {
+      setHijriDate(formatHijriDate(prayerForHijri.hijri, language))
+    }
+  }, [currentTime, todayPrayer, allPrayers, language])
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
@@ -442,8 +474,9 @@ export function DisplayClient() {
     setThemeColor(tempThemeColor)
     try {
       localStorage.setItem("waktu-display-theme", tempThemeColor)
+      localStorage.setItem("waktu-display-show-zone", String(tempShowZone))
     } catch (e) {
-      console.error("Failed to save theme color:", e)
+      console.error("Failed to save display settings:", e)
     }
     setShowSettings(false)
     setShowTestAlertDropdown(false)
@@ -455,6 +488,7 @@ export function DisplayClient() {
     : ["--:--", "--:--", "--:--", "--:--", "--:--", "--:--"]
 
   const isWithin15Mins = alertState.type === "azan_countdown" || alertState.type === "azan_now"
+  const hasAlert = alertState.type !== "none"
 
   const testAlertOptions: { value: TestAlertType; label: string }[] = [
     { value: "none", label: t.resetAlert },
@@ -509,41 +543,96 @@ export function DisplayClient() {
           alignItems: "center",
           justifyContent: "center",
           gap: "16px",
+          flexShrink: 0,
+          minHeight: "96px",
+          maxHeight: "120px",
         }}
       >
         <AlertTriangle style={{ width: "64px", height: "64px", color: "#eab308", flexShrink: 0 }} />
-        <span style={{ fontSize: "64px", fontWeight: 500, color: "#eab308", textAlign: "center" }}>{alertText}</span>
+        <span
+          style={{
+            fontSize: "64px",
+            fontWeight: 500,
+            color: "#eab308",
+            textAlign: "center",
+            lineHeight: 1.2,
+            wordBreak: "break-word",
+          }}
+        >
+          {alertText}
+        </span>
       </div>
     )
   }
 
+  const padding = Math.max(12, PADDING * scale)
+
   return (
     <div
       style={{
-        minHeight: "100vh",
+        position: "fixed",
+        inset: 0,
+        overflow: "hidden",
         backgroundColor: "#18181b",
-        padding: "24px",
         display: "flex",
-        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingLeft: padding,
+        paddingRight: padding,
+        paddingTop: padding,
+        paddingBottom: padding,
+        boxSizing: "border-box",
       }}
     >
+      <div
+        ref={wrapperRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minWidth: 0,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          ref={contentRef}
+          style={{
+            width: "1920px",
+            height: "1080px",
+            minHeight: "1080px",
+            transform: `scale(${scale})`,
+            transformOrigin: "center center",
+            backgroundColor: "#18181b",
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            boxSizing: "border-box",
+          }}
+        >
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           marginBottom: "24px",
+          flexShrink: 0,
         }}
       >
-        <div style={{ textAlign: "left" }}>
-          <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600 }}>{formatGregorianDate(language)}</p>
-          <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600 }}>{hijriDate}</p>
+        <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "8px" }}>
+          <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
+            {formatGregorianDate(language)}
+          </p>
+          <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
+            {hijriDate}
+          </p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <h1 style={{ fontSize: "96px", fontWeight: 700, color: themeColorMap[themeColor].primary, fontFamily: '"Satoshi", system-ui, sans-serif' }}>
+          <h1 style={{ fontSize: "96px", fontWeight: 700, color: themeColorMap[themeColor].primary, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }}>
             {customTitle || "Waktu+"}
           </h1>
-          <p style={{ fontSize: "96px", fontWeight: 600, color: "#ffffff" }}>
+          <p style={{ fontSize: "96px", fontWeight: 600, color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
             {currentTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
           </p>
         </div>
@@ -555,8 +644,10 @@ export function DisplayClient() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "32px",
+          gap: hasAlert ? "24px" : "32px",
           flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
         }}
       >
         {prayerKeys.map((key, index) => {
@@ -565,6 +656,18 @@ export function DisplayClient() {
           const prayerName = getPrayerName(key, language, isFriday && key === "zohor")
           const isSyuruk = key === "syuruk"
 
+          const showCountdown = isNext && (
+            !isWithin15Mins ||
+            alertState.type === "iqamah" ||
+            alertState.type === "khutbah_countdown" ||
+            alertState.type === "khutbah_quiet"
+          )
+
+          const cardScale = hasAlert ? 0.85 : 1
+          const iconSize = hasAlert ? 64 : 80
+          const nameSize = Math.round(120 * cardScale)
+          const timeSize = Math.round(118 * cardScale)
+
           return (
             <div
               key={key}
@@ -572,44 +675,45 @@ export function DisplayClient() {
                 backgroundColor: isNext ? undefined : "transparent",
                 background: isNext ? `linear-gradient(135deg, ${themeColorMap[themeColor].primary} 0%, ${themeColorMap[themeColor].gradient} 100%)` : undefined,
                 borderRadius: "8px",
-                padding: "16px",
+                padding: hasAlert ? "12px" : "16px",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                minHeight: "200px",
+                minHeight: hasAlert ? "160px" : "200px",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px", lineHeight: 1.2 }}>
-                <Icon style={{ width: "80px", height: "80px", color: "#ffffff" }} />
-                <span style={{ fontSize: "120px", fontWeight: 600, color: "#ffffff", lineHeight: 1.2 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: hasAlert ? "8px" : "12px", marginBottom: "4px", lineHeight: 1.2 }}>
+                <Icon style={{ width: iconSize, height: iconSize, color: "#ffffff" }} />
+                <span style={{ fontSize: nameSize, fontWeight: 600, color: "#ffffff", lineHeight: 1.2 }}>
                   {prayerName}
                 </span>
               </div>
-              <span style={{ fontSize: "118px", fontWeight: 600, color: "#ffffff", lineHeight: 1.2 }}>
+              <span style={{ fontSize: timeSize, fontWeight: 600, color: "#ffffff", lineHeight: 1.2 }}>
                 {prayerTimes[index]}
               </span>
-              {isNext &&
-                !isWithin15Mins &&
-                alertState.type !== "iqamah" &&
-                alertState.type !== "khutbah_countdown" &&
-                alertState.type !== "khutbah_quiet" && (
-                  <div style={{ marginTop: "8px", textAlign: "center" }}>
-                    <span style={{ fontSize: "28px", fontWeight: 500, color: "rgba(255,255,255,0.9)" }}>
-                      {isSyuruk ? `${t.sunriseIn} ${countdown}` : `${t.nextPrayer} • ${countdown}`}
-                    </span>
-                  </div>
-                )}
-              {isNext &&
-                (alertState.type === "iqamah" ||
-                  alertState.type === "khutbah_countdown" ||
-                  alertState.type === "khutbah_quiet") && (
-                  <div style={{ marginTop: "8px", textAlign: "center" }}>
-                    <span style={{ fontSize: "28px", fontWeight: 500, color: "rgba(255,255,255,0.9)" }}>
-                      {isSyuruk ? `${t.sunriseIn} ${countdown}` : `${t.nextPrayer} • ${countdown}`}
-                    </span>
-                  </div>
-                )}
+              {showCountdown && (
+                <div
+                  style={{
+                    marginTop: hasAlert ? "4px" : "8px",
+                    padding: hasAlert ? "8px 16px" : "12px 24px",
+                    textAlign: "center",
+                    width: "100%",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: hasAlert ? "clamp(14px, 2vw, 22px)" : "clamp(18px, 2.5vw, 28px)",
+                      fontWeight: 500,
+                      color: "rgba(255,255,255,0.9)",
+                      display: "block",
+                    }}
+                  >
+                    {isSyuruk ? `${t.sunriseIn} ${countdown}` : `${t.nextPrayer} • ${countdown}`}
+                  </span>
+                </div>
+              )}
             </div>
           )
         })}
@@ -619,8 +723,10 @@ export function DisplayClient() {
         <p
           style={{
             textAlign: "center",
-            marginTop: "24px",
-            fontSize: "24px",
+            marginTop: "auto",
+            paddingTop: hasAlert ? "16px" : "24px",
+            flexShrink: 0,
+            fontSize: hasAlert ? "20px" : "24px",
             fontWeight: 500,
             color: "rgba(255,255,255,0.7)",
           }}
@@ -911,6 +1017,8 @@ export function DisplayClient() {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   )
 }

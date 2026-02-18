@@ -36,33 +36,11 @@ function formatHijriDate(hijriStr: string | undefined, language: "en" | "ms"): s
   const day = Number.parseInt(parts[2], 10)
 
   const monthNamesMs = [
-    "Muharam",
-    "Safar",
-    "Rabiul Awal",
-    "Rabiul Akhir",
-    "Jamadil Awal",
-    "Jamadil Akhir",
-    "Rejab",
-    "Syaaban",
-    "Ramadan",
-    "Syawal",
-    "Zulkaedah",
-    "Zulhijjah",
+    "Muh", "Saf", "RAb", "RAk", "JAw", "JAk", "Rej", "Sya", "Ram", "Syw", "Zul", "Zhj",
   ]
 
   const monthNamesEn = [
-    "Muharram",
-    "Safar",
-    "Rabi' al-Awwal",
-    "Rabi' al-Akhir",
-    "Jumada al-Ula",
-    "Jumada al-Akhirah",
-    "Rajab",
-    "Sha'ban",
-    "Ramadan",
-    "Shawwal",
-    "Dhul-Qa'dah",
-    "Dhul-Hijjah",
+    "Muh", "Saf", "Rab", "Rak", "Jul", "Jak", "Raj", "Sha", "Ram", "Shw", "Dha", "Dhj",
   ]
 
   const monthNames = language === "ms" ? monthNamesMs : monthNamesEn
@@ -76,7 +54,7 @@ function formatGregorianDate(language: "en" | "ms"): string {
   return new Date().toLocaleDateString(locale, {
     weekday: "long",
     day: "numeric",
-    month: "long",
+    month: "short",
     year: "numeric",
   })
 }
@@ -141,9 +119,6 @@ export function HomeScreen() {
           const prayer = data.prayers[todayIdx] || data.prayers[0]
           if (prayer) {
             setTodayPrayer(prayer)
-            if (prayer.hijri) {
-              setHijriDate(formatHijriDate(prayer.hijri, language))
-            }
           }
           // Extract up to 7 days starting from today
           const week = data.prayers.slice(todayIdx, todayIdx + 7)
@@ -160,11 +135,30 @@ export function HomeScreen() {
     return () => clearInterval(interval)
   }, [selectedZone, language])
 
+  // Hijri day starts at Maghrib; use next day's hijri when Maghrib has passed
   useEffect(() => {
-    if (todayPrayer?.hijri) {
+    if (!todayPrayer?.hijri || weekPrayers.length === 0) return
+
+    const maghribStr = todayPrayer.maghrib
+    if (!maghribStr || !maghribStr.includes(":")) {
       setHijriDate(formatHijriDate(todayPrayer.hijri, language))
+      return
     }
-  }, [language, todayPrayer?.hijri])
+
+    const [maghribH, maghribM] = maghribStr.split(":").map(Number)
+    const maghribMinutes = (maghribH ?? 0) * 60 + (maghribM ?? 0)
+    const now = currentTime
+    const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60
+
+    const isAfterMaghrib = currentMinutes >= maghribMinutes
+    const prayerForHijri = isAfterMaghrib && weekPrayers[1]?.hijri
+      ? weekPrayers[1]
+      : todayPrayer
+
+    if (prayerForHijri?.hijri) {
+      setHijriDate(formatHijriDate(prayerForHijri.hijri, language))
+    }
+  }, [currentTime, todayPrayer, weekPrayers, language])
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
