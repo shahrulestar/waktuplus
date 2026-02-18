@@ -156,6 +156,8 @@ export function DisplayClient() {
   const [testMode, setTestMode] = useState<TestAlertType | null>(null)
   const [showZone, setShowZone] = useState(true)
   const [tempShowZone, setTempShowZone] = useState(true)
+  const [showHeader, setShowHeader] = useState(false)
+  const [tempShowHeader, setTempShowHeader] = useState(false)
   const [showTestAlertDropdown, setShowTestAlertDropdown] = useState(false)
   const [zoneSelectorOpen, setZoneSelectorOpen] = useState(false)
   const [hijriDate, setHijriDate] = useState<string>("")
@@ -238,6 +240,10 @@ export function DisplayClient() {
       const storedShowZone = localStorage.getItem("waktu-display-show-zone")
       if (storedShowZone !== null) {
         setShowZone(storedShowZone === "true")
+      }
+      const storedShowHeader = localStorage.getItem("waktu-display-show-header")
+      if (storedShowHeader !== null) {
+        setShowHeader(storedShowHeader === "true")
       }
       setEnabledAlerts(loadEnabledAlerts())
       const storedAzanSound = localStorage.getItem("waktu-display-azan-sound")
@@ -657,6 +663,7 @@ export function DisplayClient() {
     setTempZone(selectedZone)
     setTempLanguage(language)
     setTempShowZone(showZone)
+    setTempShowHeader(showHeader)
     setTempThemeColor(themeColor)
     setTempEnabledAlerts({ ...enabledAlerts })
     setTempAzanSoundEnabled(azanSoundEnabled)
@@ -668,6 +675,7 @@ export function DisplayClient() {
     setSelectedZone(tempZone)
     setLanguage(tempLanguage)
     setShowZone(tempShowZone)
+    setShowHeader(tempShowHeader)
     setThemeColor(tempThemeColor)
     setEnabledAlerts(tempEnabledAlerts)
     setAzanSoundEnabled(tempAzanSoundEnabled)
@@ -675,6 +683,7 @@ export function DisplayClient() {
     try {
       localStorage.setItem("waktu-display-theme", tempThemeColor)
       localStorage.setItem("waktu-display-show-zone", String(tempShowZone))
+      localStorage.setItem("waktu-display-show-header", String(tempShowHeader))
       localStorage.setItem(ALERT_STORAGE_KEY, JSON.stringify(tempEnabledAlerts))
       localStorage.setItem("waktu-display-azan-sound", String(tempAzanSoundEnabled))
     } catch (e) {
@@ -875,39 +884,41 @@ export function DisplayClient() {
             transform: `scale(${scale})`,
             transformOrigin: "center center",
             backgroundColor: "#18181b",
-            padding: "24px",
+            padding: 0,
             display: "flex",
             flexDirection: "column",
             boxSizing: "border-box",
             fontFamily: '"Satoshi", system-ui, sans-serif',
           }}
         >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "24px",
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "8px" }}>
-          <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
-            {formatGregorianDate(language)}
-          </p>
-          <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
-            {hijriDate}
-          </p>
+      {showHeader && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "24px",
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "8px" }}>
+            <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
+              {formatGregorianDate(language)}
+            </p>
+            <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
+              {hijriDate}
+            </p>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <h1 style={{ fontSize: "68px", fontWeight: 700, color: themeColorMap[themeColor].primary, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }}>
+              {customTitle || "Waktu+"}
+            </h1>
+            <p style={{ fontSize: "68px", fontWeight: 600, color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
+              {currentTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            </p>
+          </div>
         </div>
-        <div style={{ textAlign: "right" }}>
-          <h1 style={{ fontSize: "68px", fontWeight: 700, color: themeColorMap[themeColor].primary, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }}>
-            {customTitle || "Waktu+"}
-          </h1>
-          <p style={{ fontSize: "68px", fontWeight: 600, color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
-            {currentTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-          </p>
-        </div>
-      </div>
+      )}
 
       {renderAlert()}
 
@@ -990,8 +1001,8 @@ export function DisplayClient() {
         })}
       </div>
 
-      {showZone && zoneInfo && (
-        <p
+      {(!showHeader || (showZone && zoneInfo)) && (
+        <div
           style={{
             textAlign: "center",
             marginTop: "auto",
@@ -1000,10 +1011,28 @@ export function DisplayClient() {
             fontSize: hasAlert ? "20px" : "24px",
             fontWeight: 500,
             color: "rgba(255,255,255,0.7)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
           }}
         >
-          {t.zone}: {zoneInfo.name}
-        </p>
+          {showZone && zoneInfo && (
+            <p style={{ margin: 0 }}>
+              <span>{t.zone}: {zoneInfo.name}</span>
+            </p>
+          )}
+          {!showHeader && (
+            <p style={{ margin: 0 }}>
+              <span suppressHydrationWarning>{formatGregorianDate(language)}</span>
+              <span> · </span>
+              <span suppressHydrationWarning>{hijriDate}</span>
+              <span> · </span>
+              <span style={{ display: "inline-block", minWidth: "5.5em", textAlign: "left" }} suppressHydrationWarning>
+                {currentTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+              </span>
+            </p>
+          )}
+        </div>
       )}
         </div>
       </div>
@@ -1172,39 +1201,47 @@ export function DisplayClient() {
               <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
                 {t.showZone}
               </label>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  onClick={() => setTempShowZone(true)}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    backgroundColor: tempShowZone ? "#3b82f6" : "#27272a",
-                    border: "none",
-                    borderRadius: "8px",
-                    color: "#ffffff",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                  }}
-                >
-                  {t.on}
-                </button>
-                <button
-                  onClick={() => setTempShowZone(false)}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    backgroundColor: !tempShowZone ? "#3b82f6" : "#27272a",
-                    border: "none",
-                    borderRadius: "8px",
-                    color: "#ffffff",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                  }}
-                >
-                  {t.off}
-                </button>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "8px 12px",
+                  backgroundColor: "#27272a",
+                  borderRadius: "8px",
+                }}
+              >
+                <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                  {t.showZone}
+                </span>
+                <Switch
+                  checked={tempShowZone}
+                  onCheckedChange={setTempShowZone}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                {t.showHeader}
+              </label>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "8px 12px",
+                  backgroundColor: "#27272a",
+                  borderRadius: "8px",
+                }}
+              >
+                <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                  {t.showHeader}
+                </span>
+                <Switch
+                  checked={tempShowHeader}
+                  onCheckedChange={setTempShowHeader}
+                />
               </div>
             </div>
 
