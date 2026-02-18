@@ -19,6 +19,7 @@ import {
   DrawerClose,
 } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 
 interface PrayerData {
   hijri?: string
@@ -40,7 +41,37 @@ type AlertState =
 
 type TestAlertType = "none" | "azan_countdown" | "azan_now" | "iqamah" | "khutbah_countdown" | "khutbah_quiet"
 
-type ThemeColor = "blue" | "indigo" | "pink" | "rose" | "emerald" | "yellow"
+type AlertType = "azan_countdown" | "azan_now" | "iqamah" | "khutbah_countdown" | "khutbah_quiet"
+
+const DEFAULT_ENABLED_ALERTS: Record<AlertType, boolean> = {
+  azan_countdown: true,
+  azan_now: true,
+  iqamah: false,
+  khutbah_countdown: false,
+  khutbah_quiet: false,
+}
+
+const ALERT_KEYS: AlertType[] = ["azan_countdown", "azan_now", "iqamah", "khutbah_countdown", "khutbah_quiet"]
+
+const ALERT_STORAGE_KEY = "waktu-display-alerts"
+
+function loadEnabledAlerts(): Record<AlertType, boolean> {
+  try {
+    const stored = localStorage.getItem(ALERT_STORAGE_KEY)
+    if (!stored) return { ...DEFAULT_ENABLED_ALERTS }
+    const parsed = JSON.parse(stored) as Record<string, boolean>
+    return {
+      ...DEFAULT_ENABLED_ALERTS,
+      ...Object.fromEntries(
+        ALERT_KEYS.filter((k) => typeof parsed[k] === "boolean").map((k) => [k, parsed[k]])
+      ),
+    }
+  } catch {
+    return { ...DEFAULT_ENABLED_ALERTS }
+  }
+}
+
+type ThemeColor = "blue" | "indigo" | "pink" | "rose" | "emerald" | "yellow" | "orange"
 
 const themeColorMap: Record<ThemeColor, { primary: string; gradient: string; label: string }> = {
   blue: { primary: "#3b82f6", gradient: "#2563eb", label: "Blue" },
@@ -49,9 +80,10 @@ const themeColorMap: Record<ThemeColor, { primary: string; gradient: string; lab
   rose: { primary: "#f43f5e", gradient: "#e11d48", label: "Rose" },
   emerald: { primary: "#10b981", gradient: "#059669", label: "Emerald" },
   yellow: { primary: "#eab308", gradient: "#ca8a04", label: "Yellow" },
+  orange: { primary: "#f97316", gradient: "#ea580c", label: "Orange" },
 }
 
-const themeColorKeys: ThemeColor[] = ["blue", "indigo", "pink", "rose", "emerald", "yellow"]
+const themeColorKeys: ThemeColor[] = ["blue", "indigo", "pink", "rose", "emerald", "yellow", "orange"]
 
 const prayerIcons = {
   subuh: Moon,
@@ -131,6 +163,13 @@ export function DisplayClient() {
   const [iqamahForPrayer, setIqamahForPrayer] = useState<string | null>(null)
   const [themeColor, setThemeColor] = useState<ThemeColor>("blue")
   const [tempThemeColor, setTempThemeColor] = useState<ThemeColor>("blue")
+  const [enabledAlerts, setEnabledAlerts] = useState<Record<AlertType, boolean>>(DEFAULT_ENABLED_ALERTS)
+  const [tempEnabledAlerts, setTempEnabledAlerts] = useState<Record<AlertType, boolean>>(DEFAULT_ENABLED_ALERTS)
+  const [azanSoundEnabled, setAzanSoundEnabled] = useState(true)
+  const [tempAzanSoundEnabled, setTempAzanSoundEnabled] = useState(true)
+  const [showAzanBanner, setShowAzanBanner] = useState(false)
+  const [isTestingAzan, setIsTestingAzan] = useState(false)
+  const azanAudioRef = useRef<HTMLAudioElement | null>(null)
   const [isLocating, setIsLocating] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -200,8 +239,57 @@ export function DisplayClient() {
       if (storedShowZone !== null) {
         setShowZone(storedShowZone === "true")
       }
+      setEnabledAlerts(loadEnabledAlerts())
+      const storedAzanSound = localStorage.getItem("waktu-display-azan-sound")
+      const soundEnabled = storedAzanSound !== null ? storedAzanSound === "true" : true
+      setAzanSoundEnabled(soundEnabled)
+
+      const bannerDismissed = localStorage.getItem("waktu-display-azan-banner-dismissed") === "true"
+      if (!bannerDismissed && window.innerWidth >= 768) {
+        setShowAzanBanner(true)
+      }
     } catch (e) {
       console.error("Failed to read display settings:", e)
+    }
+  }, [])
+
+  const playAzanSound = useCallback(() => {
+    if (azanAudioRef.current) {
+      azanAudioRef.current.pause()
+      azanAudioRef.current.currentTime = 0
+    }
+    const audio = new Audio("/azan.mp3")
+    azanAudioRef.current = audio
+    audio.play().catch((e) => console.error("Failed to play azan sound:", e))
+    audio.onended = () => setIsTestingAzan(false)
+  }, [])
+
+  const stopAzanSound = useCallback(() => {
+    if (azanAudioRef.current) {
+      azanAudioRef.current.pause()
+      azanAudioRef.current.currentTime = 0
+      azanAudioRef.current = null
+    }
+    setIsTestingAzan(false)
+  }, [])
+
+  useEffect(() => {
+    const isAzanNow = alertState.type === "azan_now"
+    const alreadyPlaying = azanAudioRef.current && !azanAudioRef.current.paused
+    if (isAzanNow && azanSoundEnabled && !alreadyPlaying) {
+      playAzanSound()
+    }
+    if (!isAzanNow && azanAudioRef.current && !isTestingAzan) {
+      stopAzanSound()
+    }
+  }, [alertState.type, azanSoundEnabled, playAzanSound, stopAzanSound, isTestingAzan])
+
+  useEffect(() => {
+    return () => {
+      if (azanAudioRef.current) {
+        azanAudioRef.current.pause()
+        azanAudioRef.current = null
+      }
     }
   }, [])
 
@@ -364,7 +452,11 @@ export function DisplayClient() {
           language,
           isFriday && prayerKeysForAlerts[i] === "zohor",
         )
-        setAlertState({ type: "azan_countdown", prayerName, minutes: minutesUntilPrayer })
+        setAlertState(
+          enabledAlerts.azan_countdown
+            ? { type: "azan_countdown", prayerName, minutes: minutesUntilPrayer }
+            : { type: "none" },
+        )
         for (let j = 0; j < allPrayerKeys.length; j++) {
           const pTime = allPrayerTimes[j]
           if (!pTime || typeof pTime !== "string" || !pTime.includes(":")) continue
@@ -383,7 +475,7 @@ export function DisplayClient() {
 
       const minutesSincePrayer = currentMinutes - prayerMinutes + (currentSeconds > 0 ? 1 : 0)
 
-      if (minutesSincePrayer >= 0 && minutesSincePrayer < 3) {
+      if (minutesSincePrayer >= 0 && minutesSincePrayer < 5) {
         setNextPrayerKey(prayerKeysForAlerts[i])
         setCountdown(t.azanNow)
         const prayerName = getPrayerName(
@@ -391,13 +483,15 @@ export function DisplayClient() {
           language,
           isFriday && prayerKeysForAlerts[i] === "zohor",
         )
-        setAlertState({ type: "azan_now", prayerName })
+        setAlertState(
+          enabledAlerts.azan_now ? { type: "azan_now", prayerName } : { type: "none" },
+        )
         setIqamahForPrayer(prayerKeysForAlerts[i])
         return
       }
 
-      if (minutesSincePrayer >= 3 && minutesSincePrayer < 11) {
-        const iqamahRemaining = 11 - minutesSincePrayer
+      if (minutesSincePrayer >= 5 && minutesSincePrayer < 13) {
+        const iqamahRemaining = 13 - minutesSincePrayer
 
         if (isFriday && prayerKeysForAlerts[i] === "zohor") {
           const nextIdx = allPrayerKeys.indexOf("asar")
@@ -411,7 +505,11 @@ export function DisplayClient() {
               setCountdown(formatSmartCountdown(totalSecs, translations[language]))
             }
           }
-          setAlertState({ type: "khutbah_countdown", minutes: 15 - (minutesSincePrayer - 3) })
+          setAlertState(
+            enabledAlerts.khutbah_countdown
+              ? { type: "khutbah_countdown", minutes: 15 - (minutesSincePrayer - 5) }
+              : { type: "none" },
+          )
           return
         }
 
@@ -440,12 +538,16 @@ export function DisplayClient() {
             setCountdown(formatSmartCountdown(totalSecs, translations[language]))
           }
         }
-        setAlertState({ type: "iqamah", minutes: iqamahRemaining })
+        setAlertState(
+          enabledAlerts.iqamah
+            ? { type: "iqamah", minutes: iqamahRemaining }
+            : { type: "none" },
+        )
         setIqamahForPrayer(null)
         return
       }
 
-      if (isFriday && prayerKeysForAlerts[i] === "zohor" && minutesSincePrayer >= 11 && minutesSincePrayer < 41) {
+      if (isFriday && prayerKeysForAlerts[i] === "zohor" && minutesSincePrayer >= 13 && minutesSincePrayer < 43) {
         const nextIdx = allPrayerKeys.indexOf("asar")
         if (nextIdx !== -1) {
           setNextPrayerKey("asar")
@@ -457,7 +559,9 @@ export function DisplayClient() {
             setCountdown(formatSmartCountdown(totalSecs, translations[language]))
           }
         }
-        setAlertState({ type: "khutbah_quiet" })
+        setAlertState(
+          enabledAlerts.khutbah_quiet ? { type: "khutbah_quiet" } : { type: "none" },
+        )
         return
       }
     }
@@ -496,7 +600,7 @@ export function DisplayClient() {
 
     setNextPrayerKey("subuh")
     setCountdown(t.tomorrow)
-  }, [todayPrayer, currentTime, t, language, isFriday, testMode])
+  }, [todayPrayer, currentTime, t, language, isFriday, testMode, enabledAlerts])
 
   const handleLocateMe = () => {
     if (!navigator.geolocation) {
@@ -554,6 +658,8 @@ export function DisplayClient() {
     setTempLanguage(language)
     setTempShowZone(showZone)
     setTempThemeColor(themeColor)
+    setTempEnabledAlerts({ ...enabledAlerts })
+    setTempAzanSoundEnabled(azanSoundEnabled)
     setShowSettings(true)
   }
 
@@ -563,9 +669,14 @@ export function DisplayClient() {
     setLanguage(tempLanguage)
     setShowZone(tempShowZone)
     setThemeColor(tempThemeColor)
+    setEnabledAlerts(tempEnabledAlerts)
+    setAzanSoundEnabled(tempAzanSoundEnabled)
+    stopAzanSound()
     try {
       localStorage.setItem("waktu-display-theme", tempThemeColor)
       localStorage.setItem("waktu-display-show-zone", String(tempShowZone))
+      localStorage.setItem(ALERT_STORAGE_KEY, JSON.stringify(tempEnabledAlerts))
+      localStorage.setItem("waktu-display-azan-sound", String(tempAzanSoundEnabled))
     } catch (e) {
       console.error("Failed to save display settings:", e)
     }
@@ -675,6 +786,74 @@ export function DisplayClient() {
         boxSizing: "border-box",
       }}
     >
+      {showAzanBanner && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 9998,
+            backgroundColor: "rgba(37, 99, 235, 0.95)",
+            padding: "12px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "16px",
+          }}
+        >
+          <span
+            style={{
+              color: "#ffffff",
+              fontSize: "14px",
+              fontFamily: '"Inter", system-ui, sans-serif',
+            }}
+          >
+            {t.azanBannerText}
+          </span>
+          <button
+            onClick={() => {
+              setShowAzanBanner(false)
+              try { localStorage.setItem("waktu-display-azan-banner-dismissed", "true") } catch {}
+              openSettings()
+            }}
+            style={{
+              padding: "8px 20px",
+              backgroundColor: "transparent",
+              color: "#ffffff",
+              border: "1px solid #ffffff",
+              borderRadius: "6px",
+              fontSize: "13px",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: '"Inter", system-ui, sans-serif',
+              whiteSpace: "nowrap",
+            }}
+          >
+            {t.openDisplaySettings}
+          </button>
+          <button
+            onClick={() => {
+              setShowAzanBanner(false)
+              try { localStorage.setItem("waktu-display-azan-banner-dismissed", "true") } catch {}
+            }}
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "transparent",
+              color: "#ffffff",
+              border: "1px solid #ffffff",
+              borderRadius: "6px",
+              fontSize: "13px",
+              fontWeight: 500,
+              cursor: "pointer",
+              fontFamily: '"Inter", system-ui, sans-serif',
+              whiteSpace: "nowrap",
+            }}
+          >
+            {t.dismiss}
+          </button>
+        </div>
+      )}
       <div
         ref={wrapperRef}
         style={{
@@ -861,30 +1040,46 @@ export function DisplayClient() {
             alignItems: "center",
             justifyContent: "center",
             zIndex: 9999,
+            paddingLeft: viewportWidth < 1024 ? "12px" : 0,
+            paddingRight: viewportWidth < 1024 ? "12px" : 0,
+            boxSizing: "border-box",
           }}
           onClick={() => {
             setShowSettings(false)
             setShowTestAlertDropdown(false)
             setZoneSelectorOpen(false)
+            stopAzanSound()
           }}
         >
           <div
+            className="scrollbar-hide"
             style={{
               backgroundColor: "#18181b",
               borderRadius: "8px",
               padding: "24px",
               width: "100%",
-              maxWidth: "400px",
-              maxHeight: "80vh",
+              maxWidth: viewportWidth >= 768 ? "768px" : "400px",
+              maxHeight: "90vh",
               overflowY: "auto",
               position: "relative",
               fontFamily: '"Satoshi", system-ui, sans-serif',
+              height: "auto",
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <h2 style={{ fontSize: "24px", fontWeight: 600, color: "#ffffff", marginBottom: "24px", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.settings}</h2>
 
-            <div style={{ marginBottom: "16px" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: viewportWidth >= 768 ? "row" : "column",
+                gap: "24px",
+                marginBottom: "24px",
+                alignItems: "flex-start",
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined }}>
+                <div style={{ marginBottom: "16px" }}>
               <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
                 {t.customTitle}
               </label>
@@ -1051,6 +1246,49 @@ export function DisplayClient() {
                   {t.bahasaMelayu}
                 </button>
               </div>
+              </div>
+              </div>
+
+              <div style={{ flex: 1, minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined }}>
+            <div style={{ marginBottom: "24px" }}>
+              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                {t.alertsToShow}
+              </label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {ALERT_KEYS.map((key) => {
+                  const alertLabels: Record<AlertType, string> = {
+                    azan_countdown: t.testAzanCountdown,
+                    azan_now: t.testAzanNow,
+                    iqamah: t.testIqamah,
+                    khutbah_countdown: t.testKhutbah,
+                    khutbah_quiet: t.pleaseQuiet.substring(0, 24) + "...",
+                  }
+                  const isEnabled = tempEnabledAlerts[key]
+                  return (
+                    <div
+                      key={key}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "8px 12px",
+                        backgroundColor: "#27272a",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                        {alertLabels[key]}
+                      </span>
+                      <Switch
+                        checked={isEnabled}
+                        onCheckedChange={(checked) =>
+                          setTempEnabledAlerts((prev) => ({ ...prev, [key]: checked }))
+                        }
+                      />
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
             <div style={{ marginBottom: "24px" }}>
@@ -1133,6 +1371,59 @@ export function DisplayClient() {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: "24px" }}>
+              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                {t.azanSound}
+              </label>
+              <div
+                style={{
+                  padding: "12px",
+                  backgroundColor: "#27272a",
+                  borderRadius: "8px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "13px", color: "#a1a1aa", flex: 1, marginRight: "12px", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                    {t.azanSoundDescription}
+                  </span>
+                  <Switch
+                    checked={tempAzanSoundEnabled}
+                    onCheckedChange={setTempAzanSoundEnabled}
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    if (isTestingAzan) {
+                      stopAzanSound()
+                    } else {
+                      setIsTestingAzan(true)
+                      playAzanSound()
+                    }
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    backgroundColor: isTestingAzan ? "#ef4444" : "#3b82f6",
+                    border: "none",
+                    borderRadius: "6px",
+                    color: "#ffffff",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    fontFamily: '"Inter", system-ui, sans-serif',
+                    transition: "background-color 0.15s ease",
+                  }}
+                >
+                  {isTestingAzan ? t.stopAzan : t.playAzan}
+                </button>
+              </div>
+            </div>
               </div>
             </div>
 

@@ -117,6 +117,14 @@ export const translations = {
     iqamahIn: "Iqamah in",
     khutbahStartsIn: "Khutbah Starts in",
     pleaseQuiet: "Please Quiet & Listen to Khutbah",
+    // Alert settings
+    alertsToShow: "Alerts to Show",
+    azanSound: "Azan Sound",
+    azanSoundDescription: "Play azan sound when it's prayer time",
+    playAzan: "Play",
+    stopAzan: "Stop",
+    azanBannerText: "Now Waktu+ Display with azan audio",
+    openDisplaySettings: "Open Settings",
     // Alert testing translations
     testAlerts: "Test Alerts",
     testAzanCountdown: "Azan Countdown",
@@ -250,6 +258,14 @@ export const translations = {
     iqamahIn: "Iqamah dalam",
     khutbahStartsIn: "Khutbah bermula dalam",
     pleaseQuiet: "Sila Diam & Dengar Khutbah",
+    // Alert settings
+    alertsToShow: "Papar Amaran",
+    azanSound: "Bunyi Azan",
+    azanSoundDescription: "Mainkan bunyi azan apabila masuk waktu solat",
+    playAzan: "Main",
+    stopAzan: "Berhenti",
+    azanBannerText: "Kini Paparan Waktu+ dengan audio azan oleh ADZAN BILAL BIN RABAH",
+    openDisplaySettings: "Buka Tetapan Paparan",
     // Alert testing translations
     testAlerts: "Uji Amaran",
     testAzanCountdown: "Azan Countdown",
