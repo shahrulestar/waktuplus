@@ -1,13 +1,24 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef } from "react"
-import { Moon, Sun, Sunrise, SunDim, Sunset, CloudSun, Settings, AlertTriangle, ChevronDown } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Moon, Sun, Sunrise, Sunset, CloudSun, Settings, AlertTriangle, ChevronDown, Monitor } from "lucide-react"
 import { useAppStore } from "@/lib/store"
 import { prayerZones } from "@/lib/prayer-zones"
 import { ZoneSelector } from "@/components/zone-selector"
 import { translations } from "@/lib/translations"
 import { formatSmartCountdown } from "@/lib/countdown-utils"
 import { getCachedData } from "@/lib/api-cache"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerClose,
+} from "@/components/ui/drawer"
+import { Button } from "@/components/ui/button"
 
 interface PrayerData {
   hijri?: string
@@ -48,7 +59,7 @@ const prayerIcons = {
   zohor: Sun,
   asar: CloudSun,
   maghrib: Sunset,
-  isyak: SunDim,
+  isyak: Moon,
 }
 
 function formatHijriDate(hijriStr: string | undefined, language: "en" | "ms"): string {
@@ -94,9 +105,11 @@ function getPrayerName(key: string, language: "en" | "ms", isFriday: boolean): s
 }
 
 export function DisplayClient() {
+  const router = useRouter()
   const { selectedZone, setSelectedZone, language, setLanguage } = useAppStore()
   const t = translations[language]
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false)
   const [todayPrayer, setTodayPrayer] = useState<PrayerData | null>(null)
   const [nextPrayerKey, setNextPrayerKey] = useState<string | null>(null)
   const [countdown, setCountdown] = useState<string>("")
@@ -139,6 +152,14 @@ export function DisplayClient() {
     handleResize()
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768
+      setIsMobileDrawerOpen(isMobile)
+    }
+    checkMobile()
   }, [])
 
   // Scale based on fixed 1920x1080 design so resolution stays consistent when alert shows
@@ -556,7 +577,7 @@ export function DisplayClient() {
   const prayerKeys = ["subuh", "syuruk", "zohor", "asar", "maghrib", "isyak"]
   const prayerTimes = todayPrayer
     ? [todayPrayer.fajr, todayPrayer.syuruk, todayPrayer.dhuhr, todayPrayer.asr, todayPrayer.maghrib, todayPrayer.isha]
-    : ["--:--", "--:--", "--:--", "--:--", "--:--", "--:--"]
+    : ["00:00", "00:00", "00:00", "00:00", "00:00", "00:00"]
 
   const isWithin15Mins = alertState.type === "azan_countdown" || alertState.type === "azan_now"
   const hasAlert = alertState.type !== "none"
@@ -700,10 +721,10 @@ export function DisplayClient() {
           </p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <h1 style={{ fontSize: "96px", fontWeight: 700, color: themeColorMap[themeColor].primary, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: "68px", fontWeight: 700, color: themeColorMap[themeColor].primary, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }}>
             {customTitle || "Waktu+"}
           </h1>
-          <p style={{ fontSize: "96px", fontWeight: 600, color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
+          <p style={{ fontSize: "68px", fontWeight: 600, color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
             {currentTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
           </p>
         </div>
@@ -1134,6 +1155,24 @@ export function DisplayClient() {
           </div>
         </div>
       )}
+
+      <Drawer open={isMobileDrawerOpen} onOpenChange={setIsMobileDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader className="text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-500/10">
+              <Monitor className="h-6 w-6 text-yellow-500" />
+            </div>
+            <DrawerTitle>{t.mobileWarningTitle}</DrawerTitle>
+            <DrawerDescription>{t.mobileWarningDescription}</DrawerDescription>
+          </DrawerHeader>
+          <DrawerFooter>
+            <Button onClick={() => router.push("/")}>{t.visitHomepage}</Button>
+            <DrawerClose asChild>
+              <Button variant="outline">{t.dismiss}</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   )
 }

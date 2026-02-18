@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback } from "react"
-import { Sun, Sunrise, SunDim, Sunset, Moon, CloudSun } from "lucide-react"
+import { Sun, Sunrise, Sunset, Moon, CloudSun } from "lucide-react"
 import { translations } from "@/lib/translations"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -76,7 +76,7 @@ export function PrayerTimeCard({ prayerTime, prayerTimes, zoneName, isLoading, l
     { name: selectedDayIsFriday ? t.jumaah : t.zohor, time: currentPrayer?.dhuhr || "--:--", icon: Sun },
     { name: t.asar, time: currentPrayer?.asr || "--:--", icon: CloudSun },
     { name: t.maghrib, time: currentPrayer?.maghrib || "--:--", icon: Sunset },
-    { name: t.isyak, time: currentPrayer?.isha || "--:--", icon: SunDim },
+    { name: t.isyak, time: currentPrayer?.isha || "--:--", icon: Moon },
   ]
 
   // Only highlight next prayer for today (index 0)

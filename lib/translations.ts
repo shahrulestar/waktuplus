@@ -127,6 +127,10 @@ export const translations = {
     showZone: "Show Zone",
     sunriseIn: "Sunrise in",
     themeColor: "Theme Color",
+    mobileWarningTitle: "Not Optimized for Mobile",
+    mobileWarningDescription: "This page might not be responsive on mobile. We recommend opening it on a web browser on a computer or TV.",
+    visitHomepage: "Visit Homepage",
+    dismiss: "Dismiss",
   },
   ms: {
     // Navigation
@@ -256,6 +260,10 @@ export const translations = {
     showZone: "Papar Zon",
     sunriseIn: "Syuruk dalam",
     themeColor: "Warna Tema",
+    mobileWarningTitle: "Tidak Dioptimumkan untuk Mudah Alih",
+    mobileWarningDescription: "Halaman ini mungkin tidak responsif pada peranti mudah alih. Kami mengesyorkan membukanya pada pelayar web di komputer atau TV.",
+    visitHomepage: "Lawati Laman Utama",
+    dismiss: "Tutup",
   },
 }
 

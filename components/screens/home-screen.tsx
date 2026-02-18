@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { Moon, Sun, Sunrise, SunDim, Sunset, CloudSun } from "lucide-react"
+import { Moon, Sun, Sunrise, Sunset, CloudSun } from "lucide-react"
 import { PrayerTimeCard } from "@/components/prayer-time-card"
 import { RamadanCountdown } from "@/components/ramadan-countdown"
 import { VerseOfDay } from "@/components/verse-of-day"
@@ -65,7 +65,7 @@ const prayerIcons = {
   zohor: Sun,
   asar: CloudSun,
   maghrib: Sunset,
-  isyak: SunDim,
+  isyak: Moon,
 }
 
 function getPrayerName(key: string, language: "en" | "ms", isFriday: boolean): string {
