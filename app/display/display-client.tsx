@@ -172,6 +172,7 @@ export function DisplayClient() {
   const [showAzanBanner, setShowAzanBanner] = useState(false)
   const [isTestingAzan, setIsTestingAzan] = useState(false)
   const azanAudioRef = useRef<HTMLAudioElement | null>(null)
+  const inPostAzanWindowRef = useRef(false)
   const [isLocating, setIsLocating] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -285,8 +286,13 @@ export function DisplayClient() {
     if (isAzanNow && azanSoundEnabled && !alreadyPlaying) {
       playAzanSound()
     }
-    // Don't stop when transitioning to iqamah - let azan audio play until it ends naturally
-    if (!isAzanNow && alertState.type !== "iqamah" && azanAudioRef.current && !isTestingAzan) {
+    // Don't stop during post-azan window - let audio play until it ends naturally
+    const inPostAzanWindow = inPostAzanWindowRef.current
+    const shouldNotStop =
+      alertState.type === "iqamah" ||
+      alertState.type === "khutbah_countdown" ||
+      inPostAzanWindow
+    if (!isAzanNow && !shouldNotStop && azanAudioRef.current && !isTestingAzan) {
       stopAzanSound()
     }
   }, [alertState.type, azanSoundEnabled, playAzanSound, stopAzanSound, isTestingAzan])
@@ -395,6 +401,8 @@ export function DisplayClient() {
   }
 
   useEffect(() => {
+    inPostAzanWindowRef.current = false
+
     if (testMode && testMode !== "none") {
       const testPrayerName = nextPrayerKey
         ? getPrayerName(nextPrayerKey, language, isFriday && nextPrayerKey === "zohor")
@@ -488,7 +496,7 @@ export function DisplayClient() {
 
       const minutesSincePrayer = currentMinutes - prayerMinutes + (currentSeconds > 0 ? 1 : 0)
 
-      if (minutesSincePrayer >= 0 && minutesSincePrayer < 4) {
+      if (minutesSincePrayer >= 0 && minutesSincePrayer < 6) {
         setNextPrayerKey(prayerKeysForAlerts[i])
         setCountdown(t.azanNow)
         const prayerName = getPrayerName(
@@ -503,8 +511,9 @@ export function DisplayClient() {
         return
       }
 
-      if (minutesSincePrayer >= 5 && minutesSincePrayer < 15) {
-        const iqamahRemaining = 15 - minutesSincePrayer
+      if (minutesSincePrayer >= 6 && minutesSincePrayer < 16) {
+        inPostAzanWindowRef.current = true
+        const iqamahRemaining = 16 - minutesSincePrayer
 
         // Friday/Jumaah: skip iqamah, go straight to khutbah countdown (12 mins)
         if (isFriday && prayerKeysForAlerts[i] === "zohor") {
@@ -521,7 +530,7 @@ export function DisplayClient() {
           }
           setAlertState(
             enabledAlerts.khutbah_countdown
-              ? { type: "khutbah_countdown", minutes: 17 - minutesSincePrayer }
+              ? { type: "khutbah_countdown", minutes: 18 - minutesSincePrayer }
               : { type: "none" },
           )
           return
@@ -561,7 +570,7 @@ export function DisplayClient() {
         return
       }
 
-      if (isFriday && prayerKeysForAlerts[i] === "zohor" && minutesSincePrayer >= 17 && minutesSincePrayer < 47) {
+      if (isFriday && prayerKeysForAlerts[i] === "zohor" && minutesSincePrayer >= 18 && minutesSincePrayer < 48) {
         const nextIdx = allPrayerKeys.indexOf("asar")
         if (nextIdx !== -1) {
           setNextPrayerKey("asar")
