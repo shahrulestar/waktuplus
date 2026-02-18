@@ -112,15 +112,34 @@ export function DisplayClient() {
   const [showZone, setShowZone] = useState(true)
   const [tempShowZone, setTempShowZone] = useState(true)
   const [showTestAlertDropdown, setShowTestAlertDropdown] = useState(false)
+  const [zoneSelectorOpen, setZoneSelectorOpen] = useState(false)
   const [hijriDate, setHijriDate] = useState<string>("")
   const [allPrayers, setAllPrayers] = useState<PrayerData[]>([])
   const [iqamahForPrayer, setIqamahForPrayer] = useState<string | null>(null)
   const [themeColor, setThemeColor] = useState<ThemeColor>("blue")
   const [tempThemeColor, setTempThemeColor] = useState<ThemeColor>("blue")
+  const [isLocating, setIsLocating] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const PADDING = 24
   const [scale, setScale] = useState(1)
+  const [viewportWidth, setViewportWidth] = useState(1440)
+
+  function getResponsivePadding(width: number): number {
+    if (width <= 425) return 4
+    if (width <= 768) return 6
+    if (width <= 1024) return 8
+    if (width <= 1440) return 12
+    return 16
+  }
+
+  const padding = Math.max(4, getResponsivePadding(viewportWidth) * (viewportWidth >= 1440 ? scale : 1))
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth)
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
 
   // Scale based on fixed 1920x1080 design so resolution stays consistent when alert shows
   useEffect(() => {
@@ -129,10 +148,11 @@ export function DisplayClient() {
 
     const REF_WIDTH = 1920
     const REF_HEIGHT = 1080
+    const currentPadding = getResponsivePadding(viewportWidth) * 2
 
     const updateScale = () => {
-      const availableWidth = wrapperEl.clientWidth || window.innerWidth - PADDING * 2
-      const availableHeight = wrapperEl.clientHeight || window.innerHeight - PADDING * 2
+      const availableWidth = wrapperEl.clientWidth || window.innerWidth - currentPadding
+      const availableHeight = wrapperEl.clientHeight || window.innerHeight - currentPadding
       const scaleX = availableWidth / REF_WIDTH
       const scaleY = availableHeight / REF_HEIGHT
       setScale(Math.min(scaleX, scaleY))
@@ -147,7 +167,7 @@ export function DisplayClient() {
       ro.disconnect()
       window.removeEventListener("resize", updateScale)
     }
-  }, [])
+  }, [viewportWidth])
 
   useEffect(() => {
     try {
@@ -457,6 +477,56 @@ export function DisplayClient() {
     setCountdown(t.tomorrow)
   }, [todayPrayer, currentTime, t, language, isFriday, testMode])
 
+  const handleLocateMe = () => {
+    if (!navigator.geolocation) {
+      alert(language === "ms" ? "Geolokasi tidak disokong" : "Geolocation not supported")
+      return
+    }
+    setIsLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords
+          const res = await fetch(`/api/locate?lat=${latitude}&lng=${longitude}`)
+          if (res.ok) {
+            const data = await res.json()
+            const zone = data.zone ?? data.code
+            if (zone) setTempZone(zone)
+          } else throw new Error("API error")
+        } catch (error) {
+          console.error("Location API error:", error)
+          alert(language === "ms" ? "Tidak dapat mengesan zon. Sila pilih secara manual." : "Unable to detect zone. Please select manually.")
+        } finally {
+          setIsLocating(false)
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error.code, error.message)
+        setIsLocating(false)
+        const messages: Record<number, { ms: string; en: string }> = {
+          1: {
+            ms: "Akses lokasi ditolak. Sila benarkan akses lokasi dalam tetapan pelayar.",
+            en: "Location access denied. Please allow location access in your browser settings.",
+          },
+          2: {
+            ms: "Lokasi tidak dapat dikesan. Sila pastikan GPS diaktifkan.",
+            en: "Location unavailable. Please make sure GPS is enabled.",
+          },
+          3: {
+            ms: "Permintaan lokasi tamat masa. Sila cuba lagi.",
+            en: "Location request timed out. Please try again.",
+          },
+        }
+        const msg = messages[error.code] || {
+          ms: "Tidak dapat mendapatkan lokasi. Sila benarkan akses lokasi.",
+          en: "Unable to get location. Please allow location access.",
+        }
+        alert(msg[language])
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+    )
+  }
+
   const openSettings = () => {
     setTempCustomTitle(customTitle)
     setTempZone(selectedZone)
@@ -480,6 +550,7 @@ export function DisplayClient() {
     }
     setShowSettings(false)
     setShowTestAlertDropdown(false)
+    setZoneSelectorOpen(false)
   }
 
   const prayerKeys = ["subuh", "syuruk", "zohor", "asar", "maghrib", "isyak"]
@@ -565,8 +636,6 @@ export function DisplayClient() {
       </div>
     )
   }
-
-  const padding = Math.max(12, PADDING * scale)
 
   return (
     <div
@@ -736,7 +805,8 @@ export function DisplayClient() {
           {t.zone}: {zoneInfo.name}
         </p>
       )}
-
+        </div>
+      </div>
       <button
         onClick={openSettings}
         style={{
@@ -761,15 +831,20 @@ export function DisplayClient() {
           style={{
             position: "fixed",
             inset: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             backgroundColor: "rgba(0,0,0,0.8)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 50,
+            zIndex: 9999,
           }}
           onClick={() => {
-    setShowSettings(false)
+            setShowSettings(false)
             setShowTestAlertDropdown(false)
+            setZoneSelectorOpen(false)
           }}
         >
           <div
@@ -797,6 +872,7 @@ export function DisplayClient() {
                 value={tempCustomTitle}
                 onChange={(e) => setTempCustomTitle(e.target.value)}
                 placeholder={t.customTitlePlaceholder}
+                className="placeholder-inter"
                 style={{
                   width: "100%",
                   padding: "12px",
@@ -843,7 +919,37 @@ export function DisplayClient() {
               <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
                 {t.prayerZone}
               </label>
-              <ZoneSelector value={tempZone} onChange={setTempZone} />
+              <ZoneSelector
+                value={tempZone}
+                onChange={setTempZone}
+                className="placeholder-inter"
+                open={zoneSelectorOpen && !showTestAlertDropdown}
+                onOpenChange={(isOpen) => {
+                  setZoneSelectorOpen(isOpen)
+                  if (isOpen) setShowTestAlertDropdown(false)
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleLocateMe}
+                disabled={isLocating}
+                style={{
+                  width: "100%",
+                  marginTop: "12px",
+                  padding: "10px 16px",
+                  backgroundColor: "#2563eb",
+                  color: "#ffffff",
+                  fontWeight: 500,
+                  fontSize: "14px",
+                  borderRadius: "8px",
+                  border: "none",
+                  cursor: isLocating ? "wait" : "pointer",
+                  opacity: isLocating ? 0.7 : 1,
+                  fontFamily: '"Inter", system-ui, sans-serif',
+                }}
+              >
+                {isLocating ? (language === "ms" ? "Mengesan..." : "Detecting...") : t.locateMe}
+              </button>
             </div>
 
             <div style={{ marginBottom: "16px" }}>
@@ -932,7 +1038,12 @@ export function DisplayClient() {
               </label>
               <div style={{ position: "relative" }}>
                 <button
-                  onClick={() => setShowTestAlertDropdown(!showTestAlertDropdown)}
+                  onClick={() => {
+                    setShowTestAlertDropdown((prev) => {
+                      if (!prev) setZoneSelectorOpen(false)
+                      return !prev
+                    })
+                  }}
                   style={{
                     width: "100%",
                     padding: "12px",
@@ -946,9 +1057,10 @@ export function DisplayClient() {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
+                    fontFamily: '"Inter", system-ui, sans-serif',
                   }}
                 >
-                  <span>{currentTestAlertLabel}</span>
+                  <span style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>{currentTestAlertLabel}</span>
                   <ChevronDown
                     style={{
                       width: "16px",
@@ -992,6 +1104,7 @@ export function DisplayClient() {
                           fontSize: "14px",
                           textAlign: "left",
                           cursor: "pointer",
+                          fontFamily: '"Inter", system-ui, sans-serif',
                         }}
                       >
                         {option.label}
@@ -1021,8 +1134,6 @@ export function DisplayClient() {
           </div>
         </div>
       )}
-        </div>
-      </div>
     </div>
   )
 }

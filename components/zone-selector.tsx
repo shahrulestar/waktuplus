@@ -41,6 +41,8 @@ interface ZoneSelectorProps {
   placeholder?: string
   maxHeight?: number
   className?: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 export function ZoneSelector({
@@ -49,6 +51,8 @@ export function ZoneSelector({
   placeholder = "Search zone by code or name...",
   maxHeight = 350,
   className,
+  open: controlledOpen,
+  onOpenChange: onControlledOpenChange,
 }: ZoneSelectorProps) {
   const groupedZones = useMemo(
     () =>
@@ -61,7 +65,10 @@ export function ZoneSelector({
   const zoneCode = value || "WLY01"
   const selectedZone = prayerZones.find((z) => z.code === zoneCode) ?? null
 
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+  const setOpen = isControlled ? (onControlledOpenChange ?? (() => {})) : setInternalOpen
   const [inputValue, setInputValue] = useState("")
   const anchorRef = useComboboxAnchor()
 

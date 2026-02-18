@@ -149,6 +149,12 @@
   line-height: 2;
 }
 
+.placeholder-inter input,
+.placeholder-inter::placeholder,
+.placeholder-inter input::placeholder {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
 /* Hide native scrollbar while keeping scroll functionality */
 .scrollbar-hide {
   scrollbar-width: none; /* Firefox */
