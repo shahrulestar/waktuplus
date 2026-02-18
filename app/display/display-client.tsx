@@ -264,7 +264,7 @@ export function DisplayClient() {
       azanAudioRef.current.pause()
       azanAudioRef.current.currentTime = 0
     }
-    const audio = new Audio("/azan.mp3")
+    const audio = new Audio("/azan-new.mp3")
     azanAudioRef.current = audio
     audio.play().catch((e) => console.error("Failed to play azan sound:", e))
     audio.onended = () => setIsTestingAzan(false)
@@ -312,10 +312,10 @@ export function DisplayClient() {
     window.addEventListener("touchstart", handleMouseMove)
 
     const hideTimer = setInterval(() => {
-      if (Date.now() - lastMouseMove > 60000) {
+      if (Date.now() - lastMouseMove > 3000) {
         setSettingsVisible(false)
       }
-    }, 1000)
+    }, 500)
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove)
@@ -395,13 +395,19 @@ export function DisplayClient() {
 
   useEffect(() => {
     if (testMode && testMode !== "none") {
+      const testPrayerName = nextPrayerKey
+        ? getPrayerName(nextPrayerKey, language, isFriday && nextPrayerKey === "zohor")
+        : t.zohor
       switch (testMode) {
         case "azan_countdown":
-          setAlertState({ type: "azan_countdown", prayerName: t.zohor, minutes: 10 })
+          setAlertState({ type: "azan_countdown", prayerName: testPrayerName, minutes: 10 })
           break
-        case "azan_now":
-          setAlertState({ type: "azan_now", prayerName: t.zohor })
+        case "azan_now": {
+          setAlertState({ type: "azan_now", prayerName: testPrayerName })
+          const alreadyPlaying = azanAudioRef.current && !azanAudioRef.current.paused
+          if (azanSoundEnabled && !alreadyPlaying) playAzanSound()
           break
+        }
         case "iqamah":
           setAlertState({ type: "iqamah", minutes: 5 })
           break
@@ -481,7 +487,7 @@ export function DisplayClient() {
 
       const minutesSincePrayer = currentMinutes - prayerMinutes + (currentSeconds > 0 ? 1 : 0)
 
-      if (minutesSincePrayer >= 0 && minutesSincePrayer < 5) {
+      if (minutesSincePrayer >= 0 && minutesSincePrayer < 4) {
         setNextPrayerKey(prayerKeysForAlerts[i])
         setCountdown(t.azanNow)
         const prayerName = getPrayerName(
@@ -496,7 +502,7 @@ export function DisplayClient() {
         return
       }
 
-      if (minutesSincePrayer >= 5 && minutesSincePrayer < 13) {
+      if (minutesSincePrayer >= 4 && minutesSincePrayer < 13) {
         const iqamahRemaining = 13 - minutesSincePrayer
 
         if (isFriday && prayerKeysForAlerts[i] === "zohor") {
@@ -606,7 +612,7 @@ export function DisplayClient() {
 
     setNextPrayerKey("subuh")
     setCountdown(t.tomorrow)
-  }, [todayPrayer, currentTime, t, language, isFriday, testMode, enabledAlerts])
+  }, [todayPrayer, currentTime, t, language, isFriday, testMode, enabledAlerts, nextPrayerKey, azanSoundEnabled, playAzanSound])
 
   const handleLocateMe = () => {
     if (!navigator.geolocation) {
@@ -671,6 +677,9 @@ export function DisplayClient() {
   }
 
   const saveSettings = () => {
+    if (tempZone !== selectedZone) {
+      stopAzanSound()
+    }
     setCustomTitle(tempCustomTitle)
     setSelectedZone(tempZone)
     setLanguage(tempLanguage)
@@ -679,7 +688,6 @@ export function DisplayClient() {
     setThemeColor(tempThemeColor)
     setEnabledAlerts(tempEnabledAlerts)
     setAzanSoundEnabled(tempAzanSoundEnabled)
-    stopAzanSound()
     try {
       localStorage.setItem("waktu-display-theme", tempThemeColor)
       localStorage.setItem("waktu-display-show-zone", String(tempShowZone))
@@ -701,6 +709,7 @@ export function DisplayClient() {
 
   const isWithin15Mins = alertState.type === "azan_countdown" || alertState.type === "azan_now"
   const hasAlert = alertState.type !== "none"
+  const isAzanPlaying = alertState.type === "azan_now" && !testMode
 
   const testAlertOptions: { value: TestAlertType; label: string }[] = [
     { value: "none", label: t.resetAlert },
@@ -793,6 +802,7 @@ export function DisplayClient() {
         paddingTop: padding,
         paddingBottom: padding,
         boxSizing: "border-box",
+        cursor: settingsVisible ? "auto" : "none",
       }}
     >
       {showAzanBanner && (
@@ -1077,7 +1087,6 @@ export function DisplayClient() {
             setShowSettings(false)
             setShowTestAlertDropdown(false)
             setZoneSelectorOpen(false)
-            stopAzanSound()
           }}
         >
           <div
@@ -1199,49 +1208,45 @@ export function DisplayClient() {
 
             <div style={{ marginBottom: "16px" }}>
               <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                {t.showZone}
+                {t.displayOptions}
               </label>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "8px 12px",
-                  backgroundColor: "#27272a",
-                  borderRadius: "8px",
-                }}
-              >
-                <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
-                  {t.showZone}
-                </span>
-                <Switch
-                  checked={tempShowZone}
-                  onCheckedChange={setTempShowZone}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: "16px" }}>
-              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                {t.showHeader}
-              </label>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "8px 12px",
-                  backgroundColor: "#27272a",
-                  borderRadius: "8px",
-                }}
-              >
-                <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
-                  {t.showHeader}
-                </span>
-                <Switch
-                  checked={tempShowHeader}
-                  onCheckedChange={setTempShowHeader}
-                />
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "8px 12px",
+                    backgroundColor: "#27272a",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                    {t.showZone}
+                  </span>
+                  <Switch
+                    checked={tempShowZone}
+                    onCheckedChange={setTempShowZone}
+                  />
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "8px 12px",
+                    backgroundColor: "#27272a",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                    {t.showHeader}
+                  </span>
+                  <Switch
+                    checked={tempShowHeader}
+                    onCheckedChange={setTempShowHeader}
+                  />
+                </div>
               </div>
             </div>
 
@@ -1321,6 +1326,7 @@ export function DisplayClient() {
                         onCheckedChange={(checked) =>
                           setTempEnabledAlerts((prev) => ({ ...prev, [key]: checked }))
                         }
+                        disabled={isAzanPlaying}
                       />
                     </div>
                   )
@@ -1335,11 +1341,13 @@ export function DisplayClient() {
               <div style={{ position: "relative" }}>
                 <button
                   onClick={() => {
+                    if (isAzanPlaying) return
                     setShowTestAlertDropdown((prev) => {
                       if (!prev) setZoneSelectorOpen(false)
                       return !prev
                     })
                   }}
+                  disabled={isAzanPlaying}
                   style={{
                     width: "100%",
                     padding: "12px",
@@ -1349,11 +1357,12 @@ export function DisplayClient() {
                     color: "#ffffff",
                     fontSize: "14px",
                     textAlign: "left",
-                    cursor: "pointer",
+                    cursor: isAzanPlaying ? "not-allowed" : "pointer",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
                     fontFamily: '"Inter", system-ui, sans-serif',
+                    opacity: isAzanPlaying ? 0.6 : 1,
                   }}
                 >
                   <span style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>{currentTestAlertLabel}</span>
@@ -1388,9 +1397,11 @@ export function DisplayClient() {
                       <button
                         key={option.value}
                         onClick={() => {
+                          if (isAzanPlaying) return
                           setTestMode(option.value === "none" ? null : option.value)
                           setShowTestAlertDropdown(false)
                         }}
+                        disabled={isAzanPlaying}
                         style={{
                           width: "100%",
                           padding: "12px",
@@ -1432,10 +1443,12 @@ export function DisplayClient() {
                   <Switch
                     checked={tempAzanSoundEnabled}
                     onCheckedChange={setTempAzanSoundEnabled}
+                    disabled={isAzanPlaying}
                   />
                 </div>
                 <button
                   onClick={() => {
+                    if (isAzanPlaying) return
                     if (isTestingAzan) {
                       stopAzanSound()
                     } else {
@@ -1443,6 +1456,7 @@ export function DisplayClient() {
                       playAzanSound()
                     }
                   }}
+                  disabled={isAzanPlaying}
                   style={{
                     width: "100%",
                     padding: "8px 12px",
@@ -1452,9 +1466,10 @@ export function DisplayClient() {
                     color: "#ffffff",
                     fontSize: "13px",
                     fontWeight: 500,
-                    cursor: "pointer",
+                    cursor: isAzanPlaying ? "not-allowed" : "pointer",
                     fontFamily: '"Inter", system-ui, sans-serif',
                     transition: "background-color 0.15s ease",
+                    opacity: isAzanPlaying ? 0.6 : 1,
                   }}
                 >
                   {isTestingAzan ? t.stopAzan : t.playAzan}
