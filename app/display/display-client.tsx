@@ -557,29 +557,43 @@ export function DisplayClient() {
           return
         }
 
-        const currentPrayerIdx = allPrayerKeys.indexOf(prayerKeysForAlerts[i])
-        let nextPrayerIdx = currentPrayerIdx + 1
-        if (allPrayerKeys[nextPrayerIdx] === "syuruk") nextPrayerIdx++
-
-        if (nextPrayerIdx < allPrayerKeys.length) {
-          setNextPrayerKey(allPrayerKeys[nextPrayerIdx])
-          const nextTime = allPrayerTimes[nextPrayerIdx]
-          if (nextTime && nextTime.includes(":")) {
-            const [nH, nM] = nextTime.split(":").map(Number)
-            const nMinutes = nH * 60 + nM
-            const totalSecs = (nMinutes - currentMinutes) * 60 - currentSeconds
-            setCountdown(formatSmartCountdown(totalSecs, translations[language]))
+        // Subuh iqamah: countdown to sunrise (syuruk), not Dhuhr
+        if (prayerKeysForAlerts[i] === "subuh") {
+          const syurukTime = todayPrayer.syuruk
+          if (syurukTime && syurukTime.includes(":")) {
+            const [sH, sM] = syurukTime.split(":").map(Number)
+            const syurukMinutes = sH * 60 + sM
+            if (currentMinutes < syurukMinutes) {
+              setNextPrayerKey("syuruk")
+              const totalSecs = (syurukMinutes - currentMinutes) * 60 - currentSeconds
+              setCountdown(formatSmartCountdown(totalSecs, translations[language]))
+            }
           }
         } else {
-          setNextPrayerKey("subuh")
-          const fajrTime = todayPrayer.fajr
-          if (fajrTime && fajrTime.includes(":")) {
-            const [fH, fM] = fajrTime.split(":").map(Number)
-            const fajrMinutes = fH * 60 + fM
-            const minutesUntilMidnight = 24 * 60 - currentMinutes
-            const totalMins = minutesUntilMidnight + fajrMinutes
-            const totalSecs = totalMins * 60 - currentSeconds
-            setCountdown(formatSmartCountdown(totalSecs, translations[language]))
+          const currentPrayerIdx = allPrayerKeys.indexOf(prayerKeysForAlerts[i])
+          let nextPrayerIdx = currentPrayerIdx + 1
+          if (allPrayerKeys[nextPrayerIdx] === "syuruk") nextPrayerIdx++
+
+          if (nextPrayerIdx < allPrayerKeys.length) {
+            setNextPrayerKey(allPrayerKeys[nextPrayerIdx])
+            const nextTime = allPrayerTimes[nextPrayerIdx]
+            if (nextTime && nextTime.includes(":")) {
+              const [nH, nM] = nextTime.split(":").map(Number)
+              const nMinutes = nH * 60 + nM
+              const totalSecs = (nMinutes - currentMinutes) * 60 - currentSeconds
+              setCountdown(formatSmartCountdown(totalSecs, translations[language]))
+            }
+          } else {
+            setNextPrayerKey("subuh")
+            const fajrTime = todayPrayer.fajr
+            if (fajrTime && fajrTime.includes(":")) {
+              const [fH, fM] = fajrTime.split(":").map(Number)
+              const fajrMinutes = fH * 60 + fM
+              const minutesUntilMidnight = 24 * 60 - currentMinutes
+              const totalMins = minutesUntilMidnight + fajrMinutes
+              const totalSecs = totalMins * 60 - currentSeconds
+              setCountdown(formatSmartCountdown(totalSecs, translations[language]))
+            }
           }
         }
         if (enabledAlerts.iqamah) {
