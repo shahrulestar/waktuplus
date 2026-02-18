@@ -285,7 +285,8 @@ export function DisplayClient() {
     if (isAzanNow && azanSoundEnabled && !alreadyPlaying) {
       playAzanSound()
     }
-    if (!isAzanNow && azanAudioRef.current && !isTestingAzan) {
+    // Don't stop when transitioning to iqamah - let azan audio play until it ends naturally
+    if (!isAzanNow && alertState.type !== "iqamah" && azanAudioRef.current && !isTestingAzan) {
       stopAzanSound()
     }
   }, [alertState.type, azanSoundEnabled, playAzanSound, stopAzanSound, isTestingAzan])
@@ -400,7 +401,7 @@ export function DisplayClient() {
         : t.zohor
       switch (testMode) {
         case "azan_countdown":
-          setAlertState({ type: "azan_countdown", prayerName: testPrayerName, minutes: 10 })
+          setAlertState({ type: "azan_countdown", prayerName: testPrayerName, minutes: 15 })
           break
         case "azan_now": {
           setAlertState({ type: "azan_now", prayerName: testPrayerName })
@@ -409,7 +410,7 @@ export function DisplayClient() {
           break
         }
         case "iqamah":
-          setAlertState({ type: "iqamah", minutes: 5 })
+          setAlertState({ type: "iqamah", minutes: 10 })
           break
         case "khutbah_countdown":
           setAlertState({ type: "khutbah_countdown", minutes: 12 })
@@ -502,9 +503,10 @@ export function DisplayClient() {
         return
       }
 
-      if (minutesSincePrayer >= 4 && minutesSincePrayer < 13) {
-        const iqamahRemaining = 13 - minutesSincePrayer
+      if (minutesSincePrayer >= 5 && minutesSincePrayer < 15) {
+        const iqamahRemaining = 15 - minutesSincePrayer
 
+        // Friday/Jumaah: skip iqamah, go straight to khutbah countdown (12 mins)
         if (isFriday && prayerKeysForAlerts[i] === "zohor") {
           const nextIdx = allPrayerKeys.indexOf("asar")
           if (nextIdx !== -1) {
@@ -519,7 +521,7 @@ export function DisplayClient() {
           }
           setAlertState(
             enabledAlerts.khutbah_countdown
-              ? { type: "khutbah_countdown", minutes: 15 - (minutesSincePrayer - 5) }
+              ? { type: "khutbah_countdown", minutes: 17 - minutesSincePrayer }
               : { type: "none" },
           )
           return
@@ -559,7 +561,7 @@ export function DisplayClient() {
         return
       }
 
-      if (isFriday && prayerKeysForAlerts[i] === "zohor" && minutesSincePrayer >= 13 && minutesSincePrayer < 43) {
+      if (isFriday && prayerKeysForAlerts[i] === "zohor" && minutesSincePrayer >= 17 && minutesSincePrayer < 47) {
         const nextIdx = allPrayerKeys.indexOf("asar")
         if (nextIdx !== -1) {
           setNextPrayerKey("asar")
