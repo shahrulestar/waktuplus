@@ -62,6 +62,15 @@ const ALERT_DURATION_MINS: Record<AlertType, number> = {
   khutbah_quiet: 30,
 }
 
+/** Test mode durations in seconds (shorter for quick testing) */
+const TEST_DURATION_SECONDS: Record<Exclude<TestAlertType, "none">, number> = {
+  azan_countdown: 15,
+  azan_now: 5,
+  iqamah: 10,
+  khutbah_countdown: 12,
+  khutbah_quiet: 30,
+}
+
 const ALERT_STORAGE_KEY = "waktu-display-alerts"
 
 function loadEnabledAlerts(): Record<AlertType, boolean> {
@@ -270,15 +279,19 @@ export function DisplayClient() {
     }
   }, [])
 
-  const playAzanSound = useCallback(() => {
+  const playAzanSound = useCallback((onEnded?: () => void) => {
     if (azanAudioRef.current) {
       azanAudioRef.current.pause()
       azanAudioRef.current.currentTime = 0
     }
     const audio = new Audio("/azan-new.mp3")
+    audio.loop = false
     azanAudioRef.current = audio
     audio.play().catch((e) => console.error("Failed to play azan sound:", e))
-    audio.onended = () => setIsTestingAzan(false)
+    audio.onended = () => {
+      setIsTestingAzan(false)
+      onEnded?.()
+    }
   }, [])
 
   const stopAzanSound = useCallback(() => {
@@ -340,6 +353,19 @@ export function DisplayClient() {
       clearInterval(hideTimer)
     }
   }, [lastMouseMove, handleMouseMove])
+
+  // Test mode auto-dismiss: each test alert disappears after its duration, then resets to "Reset"
+  useEffect(() => {
+    if (!testMode || testMode === "none") return
+    if (testMode === "azan_now" && azanSoundEnabled) return // Reset handled by audio onended callback
+
+    const durationMs = TEST_DURATION_SECONDS[testMode] * 1000
+    const timer = setTimeout(() => {
+      setTestMode(null)
+      setAlertState({ type: "none" })
+    }, durationMs)
+    return () => clearTimeout(timer)
+  }, [testMode, azanSoundEnabled])
 
   useEffect(() => {
     const fetchPrayer = async () => {
@@ -443,7 +469,12 @@ export function DisplayClient() {
         case "azan_now": {
           setAlertState({ type: "azan_now", prayerName: testPrayerName })
           const alreadyPlaying = azanAudioRef.current && !azanAudioRef.current.paused
-          if (azanSoundEnabled && !alreadyPlaying) playAzanSound()
+          if (azanSoundEnabled && !alreadyPlaying) {
+            playAzanSound(() => {
+              setTestMode(null)
+              setAlertState({ type: "none" })
+            })
+          }
           break
         }
         case "iqamah":
@@ -887,6 +918,8 @@ export function DisplayClient() {
         paddingBottom: padding,
         boxSizing: "border-box",
         cursor: settingsVisible ? "auto" : "none",
+        userSelect: "none",
+        WebkitUserSelect: "none",
       }}
     >
       {showAzanBanner && (
