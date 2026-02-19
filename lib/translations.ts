@@ -266,7 +266,7 @@ export const translations = {
     azanSoundDescription: "Mainkan bunyi azan apabila masuk waktu solat",
     playAzan: "Main",
     stopAzan: "Berhenti",
-    azanBannerText: "Kini Paparan Waktu+ dengan audio azan oleh ADZAN BILAL BIN RABAH",
+    azanBannerText: "Kini Paparan Waktu+ dengan audio azan",
     openDisplaySettings: "Buka Tetapan Paparan",
     // Alert testing translations
     testAlerts: "Uji Amaran",
