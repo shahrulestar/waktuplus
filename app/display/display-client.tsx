@@ -279,6 +279,22 @@ export function DisplayClient() {
     }
   }, [])
 
+  // Show banner when tab becomes visible (handles "already open" case)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        try {
+          const bannerDismissed = localStorage.getItem("waktu-display-azan-banner-dismissed") === "true"
+          if (!bannerDismissed && window.innerWidth >= 768) {
+            setShowAzanBanner(true)
+          }
+        } catch {}
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
+  }, [])
+
   const playAzanSound = useCallback((onEnded?: () => void) => {
     if (azanAudioRef.current) {
       azanAudioRef.current.pause()
@@ -743,7 +759,10 @@ export function DisplayClient() {
           if (res.ok) {
             const data = await res.json()
             const zone = data.zone ?? data.code
-            if (zone) setTempZone(zone)
+            if (zone) {
+              setTempZone(zone)
+              saveSettings(zone)
+            }
           } else throw new Error("API error")
         } catch (error) {
           console.error("Location API error:", error)
@@ -791,12 +810,13 @@ export function DisplayClient() {
     setShowSettings(true)
   }
 
-  const saveSettings = () => {
-    if (tempZone !== selectedZone) {
+  const saveSettings = (zoneOverride?: string) => {
+    const zoneToSave = zoneOverride ?? tempZone
+    if (zoneToSave !== selectedZone) {
       stopAzanSound()
     }
     setCustomTitle(tempCustomTitle)
-    setSelectedZone(tempZone)
+    setSelectedZone(zoneToSave)
     setLanguage(tempLanguage)
     setShowZone(tempShowZone)
     setShowHeader(tempShowHeader)
@@ -1295,13 +1315,16 @@ export function DisplayClient() {
               <ZoneSelector
                 value={tempZone}
                 onChange={setTempZone}
-                className="placeholder-inter"
+                className="placeholder-inter [&_[data-slot=input-group-button]]:hover:bg-transparent [&_[data-slot=input-group-button]]:hover:text-current"
                 open={zoneSelectorOpen && !showTestAlertDropdown}
                 onOpenChange={(isOpen) => {
                   setZoneSelectorOpen(isOpen)
                   if (isOpen) setShowTestAlertDropdown(false)
                 }}
               />
+              <p style={{ fontSize: "12px", color: "#a1a1aa", marginTop: "8px", marginBottom: 0 }}>
+                {t.zoneSource}
+              </p>
               <button
                 type="button"
                 onClick={handleLocateMe}
