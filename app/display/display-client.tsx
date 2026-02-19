@@ -54,6 +54,14 @@ const DEFAULT_ENABLED_ALERTS: Record<AlertType, boolean> = {
 
 const ALERT_KEYS: AlertType[] = ["azan_countdown", "azan_now", "iqamah", "khutbah_countdown", "khutbah_quiet"]
 
+const ALERT_DURATION_MINS: Record<AlertType, number> = {
+  azan_countdown: 15,
+  azan_now: 5,
+  iqamah: 10,
+  khutbah_countdown: 12,
+  khutbah_quiet: 30,
+}
+
 const ALERT_STORAGE_KEY = "waktu-display-alerts"
 
 function loadEnabledAlerts(): Record<AlertType, boolean> {
@@ -1397,7 +1405,7 @@ export function DisplayClient() {
                       }}
                     >
                       <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
-                        {alertLabels[key]}
+                        {alertLabels[key]} ({ALERT_DURATION_MINS[key]} {t.mins})
                       </span>
                       <Switch
                         checked={isEnabled}
