@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
 import { AppProvider } from "@/lib/store"
+import { UpdateBanner } from "@/components/UpdateBanner"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -144,6 +145,7 @@ export default function RootLayout({
           minHeight: "100vh",
         }}
       >
+        <UpdateBanner />
         <AppProvider>{children}</AppProvider>
         <Analytics />
       </body>
