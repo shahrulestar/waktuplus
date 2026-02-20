@@ -144,6 +144,11 @@ export const translations = {
     mobileWarningDescription: "This page might not be responsive on mobile. We recommend opening it on a web browser on a computer or TV.",
     visitHomepage: "Visit Homepage",
     dismiss: "Dismiss",
+    timeFormat: "Time Format",
+    timeFormat12h: "12 Hour",
+    timeFormat24h: "24 Hour",
+    prayerTimeBegun: "Prayer time has begun",
+    begins: "Begins",
   },
   ms: {
     // Navigation
@@ -290,6 +295,11 @@ export const translations = {
     mobileWarningDescription: "Halaman ini mungkin tidak responsif pada peranti mudah alih. Kami mengesyorkan membukanya pada pelayar web di komputer atau TV.",
     visitHomepage: "Lawati Laman Utama",
     dismiss: "Tutup",
+    timeFormat: "Format Masa",
+    timeFormat12h: "12 Jam",
+    timeFormat24h: "24 Jam",
+    prayerTimeBegun: "Telah masuk waktu solat",
+    begins: "Bermula",
   },
 }
 

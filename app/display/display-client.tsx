@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Moon, Sun, Sunrise, Sunset, CloudSun, Settings, AlertTriangle, ChevronDown, Monitor } from "lucide-react"
+import { Moon, Sun, Sunrise, Sunset, CloudSun, Settings, AlertTriangle, ChevronDown, Monitor, Expand, Shrink } from "lucide-react"
 import { useAppStore } from "@/lib/store"
 import { prayerZones } from "@/lib/prayer-zones"
 import { ZoneSelector } from "@/components/zone-selector"
@@ -154,6 +154,31 @@ function getPrayerName(key: string, language: "en" | "ms", isFriday: boolean): s
   return t[key as keyof typeof t] as string
 }
 
+function formatTimeDisplay(date: Date, format: "12h" | "24h"): string {
+  if (format === "12h") {
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    })
+  }
+  return date.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+}
+
+function formatPrayerTime(time: string, format: "12h" | "24h"): string {
+  if (format === "24h" || !time.includes(":")) return time
+  const [h, m] = time.split(":").map(Number)
+  if (isNaN(h) || isNaN(m)) return time
+  const period = h >= 12 ? "PM" : "AM"
+  const hour12 = h % 12 || 12
+  return `${hour12}:${m.toString().padStart(2, "0")} ${period}`
+}
+
 export function DisplayClient() {
   const router = useRouter()
   const { selectedZone, setSelectedZone, language, setLanguage } = useAppStore()
@@ -189,6 +214,8 @@ export function DisplayClient() {
   const [tempAzanSoundEnabled, setTempAzanSoundEnabled] = useState(true)
   const [autoRefresh, setAutoRefresh] = useState(false)
   const [tempAutoRefresh, setTempAutoRefresh] = useState(false)
+  const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("24h")
+  const [tempTimeFormat, setTempTimeFormat] = useState<"12h" | "24h">("24h")
   const [showAzanBanner, setShowAzanBanner] = useState(false)
   const [isTestingAzan, setIsTestingAzan] = useState(false)
   const azanAudioRef = useRef<HTMLAudioElement | null>(null)
@@ -199,6 +226,21 @@ export function DisplayClient() {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
   const [viewportWidth, setViewportWidth] = useState(1440)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  useEffect(() => {
+    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener("fullscreenchange", handleFsChange)
+    return () => document.removeEventListener("fullscreenchange", handleFsChange)
+  }, [])
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {})
+    } else {
+      document.documentElement.requestFullscreen().catch(() => {})
+    }
+  }, [])
 
   function getResponsivePadding(width: number): number {
     if (width <= 425) return 4
@@ -274,6 +316,11 @@ export function DisplayClient() {
 
       const storedAutoRefresh = localStorage.getItem("waktu-display-auto-refresh")
       setAutoRefresh(storedAutoRefresh === "true")
+
+      const storedTimeFormat = localStorage.getItem("waktu-display-time-format")
+      if (storedTimeFormat === "12h" || storedTimeFormat === "24h") {
+        setTimeFormat(storedTimeFormat)
+      }
 
       const bannerDismissed = localStorage.getItem("waktu-display-azan-banner-dismissed") === "true"
       if (!bannerDismissed && window.innerWidth >= 768) {
@@ -820,6 +867,7 @@ export function DisplayClient() {
     setTempEnabledAlerts({ ...enabledAlerts })
     setTempAzanSoundEnabled(azanSoundEnabled)
     setTempAutoRefresh(autoRefresh)
+    setTempTimeFormat(timeFormat)
     setShowSettings(true)
   }
 
@@ -837,6 +885,7 @@ export function DisplayClient() {
     setEnabledAlerts(tempEnabledAlerts)
     setAzanSoundEnabled(tempAzanSoundEnabled)
     setAutoRefresh(tempAutoRefresh)
+    setTimeFormat(tempTimeFormat)
     try {
       localStorage.setItem("waktu-display-theme", tempThemeColor)
       localStorage.setItem("waktu-display-show-zone", String(tempShowZone))
@@ -844,6 +893,7 @@ export function DisplayClient() {
       localStorage.setItem(ALERT_STORAGE_KEY, JSON.stringify(tempEnabledAlerts))
       localStorage.setItem("waktu-display-azan-sound", String(tempAzanSoundEnabled))
       localStorage.setItem("waktu-display-auto-refresh", String(tempAutoRefresh))
+      localStorage.setItem("waktu-display-time-format", tempTimeFormat)
     } catch (e) {
       console.error("Failed to save display settings:", e)
     }
@@ -861,6 +911,18 @@ export function DisplayClient() {
   const hasAlert = alertState.type !== "none" && alertState.type !== "sunrise_countdown"
   const isAzanPlaying = alertState.type === "azan_now" && !testMode
 
+  const hasSettingsChanged =
+    tempCustomTitle !== customTitle ||
+    tempZone !== selectedZone ||
+    tempLanguage !== language ||
+    tempShowZone !== showZone ||
+    tempShowHeader !== showHeader ||
+    tempThemeColor !== themeColor ||
+    tempAzanSoundEnabled !== azanSoundEnabled ||
+    tempAutoRefresh !== autoRefresh ||
+    tempTimeFormat !== timeFormat ||
+    JSON.stringify(tempEnabledAlerts) !== JSON.stringify(enabledAlerts)
+
   const testAlertOptions: { value: TestAlertType; label: string }[] = [
     { value: "none", label: t.resetAlert },
     { value: "azan_countdown", label: t.testAzanCountdown },
@@ -877,7 +939,7 @@ export function DisplayClient() {
     if (nextPrayerKey === "syuruk") {
       return `${t.sunriseIn} ${countdown}`
     }
-    return `${t.nextPrayer} • ${countdown}`
+    return `${t.begins} ${countdown}`
   }
 
   const renderAlert = () => {
@@ -889,7 +951,7 @@ export function DisplayClient() {
         alertText = `${t.azanIn} ${alertState.prayerName} ${t.inMinutes} ${alertState.minutes} ${t.mins}`
         break
       case "azan_now":
-        alertText = `${t.azanNow} - ${alertState.prayerName}`
+        alertText = `${t.prayerTimeBegun} ${alertState.prayerName}`
         break
       case "iqamah":
         alertText = `${t.iqamahIn} ${alertState.minutes} ${t.mins}`
@@ -1076,7 +1138,7 @@ export function DisplayClient() {
               {customTitle || "Waktu+"}
             </h1>
             <p style={{ fontSize: "68px", fontWeight: 600, color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
-              {currentTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+              {formatTimeDisplay(currentTime, timeFormat)}
             </p>
           </div>
         </div>
@@ -1136,30 +1198,49 @@ export function DisplayClient() {
                 </span>
               </div>
               <span style={{ fontSize: timeSize, fontWeight: 600, color: "#ffffff", lineHeight: 1.2 }}>
-                {prayerTimes[index]}
+                {formatPrayerTime(prayerTimes[index], timeFormat)}
               </span>
-              {showCountdown && (
-                <div
+              <div
+                style={{
+                  marginTop: hasAlert ? "4px" : "8px",
+                  padding: hasAlert ? "8px 16px" : "12px 24px",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  minHeight: hasAlert ? "38px" : "52px",
+                  visibility: showCountdown ? "visible" : "hidden",
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "2px",
+                }}
+              >
+                <span
                   style={{
-                    marginTop: hasAlert ? "4px" : "8px",
-                    padding: hasAlert ? "8px 16px" : "12px 24px",
-                    textAlign: "center",
-                    width: "100%",
-                    boxSizing: "border-box",
+                    fontSize: hasAlert ? "clamp(14px, 2vw, 22px)" : "clamp(18px, 2.5vw, 28px)",
+                    fontWeight: 500,
+                    color: "rgba(255,255,255,0.9)",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
                   }}
                 >
-                  <span
-                    style={{
-                      fontSize: hasAlert ? "clamp(14px, 2vw, 22px)" : "clamp(18px, 2.5vw, 28px)",
-                      fontWeight: 500,
-                      color: "rgba(255,255,255,0.9)",
-                      display: "block",
-                    }}
-                  >
-                    {isSyuruk ? `${t.sunriseIn} ${countdown}` : `${t.nextPrayer} • ${countdown}`}
-                  </span>
-                </div>
-              )}
+                  {isSyuruk ? t.sunriseIn : t.begins}
+                </span>
+                <span
+                  style={{
+                    fontSize: hasAlert ? "clamp(14px, 2vw, 22px)" : "clamp(18px, 2.5vw, 28px)",
+                    fontWeight: 500,
+                    color: "rgba(255,255,255,0.9)",
+                    whiteSpace: "nowrap",
+                    fontVariantNumeric: "tabular-nums",
+                    width: "240px",
+                    textAlign: "center",
+                    display: "inline-block",
+                  }}
+                >
+                  {countdown}
+                </span>
+              </div>
             </div>
           )
         })}
@@ -1191,8 +1272,8 @@ export function DisplayClient() {
               <span> · </span>
               <span suppressHydrationWarning>{hijriDate}</span>
               <span> · </span>
-              <span style={{ display: "inline-block", minWidth: "5.5em", textAlign: "left" }} suppressHydrationWarning>
-                {currentTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+              <span style={{ display: "inline-block", minWidth: timeFormat === "12h" ? "7.5em" : "5.5em", textAlign: "left" }} suppressHydrationWarning>
+                {formatTimeDisplay(currentTime, timeFormat)}
               </span>
             </p>
           )}
@@ -1200,6 +1281,27 @@ export function DisplayClient() {
       )}
         </div>
       </div>
+      <button
+        onClick={toggleFullscreen}
+        title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+        style={{
+          position: "fixed",
+          bottom: "24px",
+          right: "80px",
+          backgroundColor: "#27272a",
+          border: "none",
+          borderRadius: "8px",
+          padding: "12px",
+          cursor: "pointer",
+          opacity: settingsVisible ? 1 : 0,
+          transition: "opacity 0.3s ease",
+          pointerEvents: settingsVisible ? "auto" : "none",
+        }}
+      >
+        {isFullscreen
+          ? <Shrink style={{ width: "24px", height: "24px", color: "#ffffff" }} />
+          : <Expand style={{ width: "24px", height: "24px", color: "#ffffff" }} />}
+      </button>
       <button
         onClick={openSettings}
         style={{
@@ -1270,7 +1372,7 @@ export function DisplayClient() {
                 alignItems: "flex-start",
               }}
             >
-              <div style={{ flex: 1, minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined }}>
+              <div style={{ flex: "1 1 0%", minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined, height: "fit-content" }}>
                 <div style={{ marginBottom: "16px" }}>
               <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
                 {t.customTitle}
@@ -1442,6 +1544,7 @@ export function DisplayClient() {
                     fontSize: "14px",
                     fontWeight: 500,
                     cursor: "pointer",
+                    fontFamily: '"Inter", system-ui, sans-serif',
                   }}
                 >
                   {t.english}
@@ -1458,15 +1561,17 @@ export function DisplayClient() {
                     fontSize: "14px",
                     fontWeight: 500,
                     cursor: "pointer",
+                    fontFamily: '"Inter", system-ui, sans-serif',
                   }}
                 >
                   {t.bahasaMelayu}
                 </button>
               </div>
               </div>
+
               </div>
 
-              <div style={{ flex: 1, minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined }}>
+              <div style={{ flex: "1 1 0%", minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined, height: "fit-content" }}>
             <div style={{ marginBottom: "24px" }}>
               <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
                 {t.alertsToShow}
@@ -1634,12 +1739,12 @@ export function DisplayClient() {
                   disabled={isAzanPlaying}
                   style={{
                     width: "100%",
-                    padding: "8px 12px",
-                    backgroundColor: isTestingAzan ? "#ef4444" : "#3b82f6",
+                    padding: "10px 16px",
+                    backgroundColor: isTestingAzan ? "#ef4444" : "#2563eb",
                     border: "none",
-                    borderRadius: "6px",
+                    borderRadius: "8px",
                     color: "#ffffff",
-                    fontSize: "13px",
+                    fontSize: "14px",
                     fontWeight: 500,
                     cursor: isAzanPlaying ? "not-allowed" : "pointer",
                     fontFamily: '"Inter", system-ui, sans-serif',
@@ -1651,25 +1756,74 @@ export function DisplayClient() {
                 </button>
               </div>
             </div>
+
+            <div style={{ marginBottom: "24px" }}>
+              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                {t.timeFormat}
+              </label>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  onClick={() => setTempTimeFormat("12h")}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    backgroundColor: tempTimeFormat === "12h" ? "#3b82f6" : "#27272a",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#ffffff",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    fontFamily: '"Inter", system-ui, sans-serif',
+                  }}
+                >
+                  {t.timeFormat12h}
+                </button>
+                <button
+                  onClick={() => setTempTimeFormat("24h")}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    backgroundColor: tempTimeFormat === "24h" ? "#3b82f6" : "#27272a",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#ffffff",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    fontFamily: '"Inter", system-ui, sans-serif',
+                  }}
+                >
+                  {t.timeFormat24h}
+                </button>
+              </div>
+            </div>
               </div>
             </div>
 
-            <button
-              onClick={() => saveSettings()}
-              style={{
-                width: "100%",
-                padding: "12px",
-                backgroundColor: "#3b82f6",
-                border: "none",
-                borderRadius: "8px",
-                color: "#ffffff",
-                fontSize: "14px",
-                fontWeight: 500,
-                cursor: "pointer",
-              }}
-            >
-              {t.save}
-            </button>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => saveSettings()}
+                disabled={!hasSettingsChanged}
+                style={{
+                  width: "100%",
+                  maxWidth: "150px",
+                  padding: "12px",
+                  backgroundColor: hasSettingsChanged ? "#3b82f6" : "#27272a",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#ffffff",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  cursor: hasSettingsChanged ? "pointer" : "not-allowed",
+                  opacity: hasSettingsChanged ? 1 : 0.5,
+                  fontFamily: '"Inter", system-ui, sans-serif',
+                  transition: "background-color 0.15s ease, opacity 0.15s ease",
+                }}
+              >
+                {t.save}
+              </button>
+            </div>
           </div>
         </div>
       )}
