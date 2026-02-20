@@ -114,7 +114,7 @@ export function ZoneSelector({
           showClear={false}
           aria-label="Search and select prayer zone"
           className={cn(
-            "w-full h-10 min-h-10 rounded-lg border bg-[#27272a] border-[#3f3f46] text-white",
+            "w-full h-[47px] min-h-[47px] rounded-lg border bg-[#27272a] border-[#3f3f46] text-white",
             "placeholder:text-zinc-400 [&_input]:text-white [&_input]:bg-transparent [&_input]:text-sm",
             "[&_input]:truncate [&_input]:overflow-hidden [&_input]:text-ellipsis",
             "[&>svg]:text-white [&>svg]:opacity-80",

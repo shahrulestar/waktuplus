@@ -37,29 +37,26 @@ type AlertState =
   | { type: "azan_now"; prayerName: string; prayerKey: string }
   | { type: "iqamah"; minutes: number }
   | { type: "khutbah_countdown"; minutes: number }
-  | { type: "khutbah_quiet" }
   | { type: "sunrise_countdown"; minutes: number }
 
-type TestAlertType = "none" | "azan_countdown" | "azan_now" | "iqamah" | "khutbah_countdown" | "khutbah_quiet"
+type TestAlertType = "none" | "azan_countdown" | "azan_now" | "iqamah" | "khutbah_countdown"
 
-type AlertType = "azan_countdown" | "azan_now" | "iqamah" | "khutbah_countdown" | "khutbah_quiet"
+type AlertType = "azan_countdown" | "azan_now" | "iqamah" | "khutbah_countdown"
 
 const DEFAULT_ENABLED_ALERTS: Record<AlertType, boolean> = {
   azan_countdown: true,
   azan_now: true,
   iqamah: false,
   khutbah_countdown: false,
-  khutbah_quiet: false,
 }
 
-const ALERT_KEYS: AlertType[] = ["azan_countdown", "azan_now", "iqamah", "khutbah_countdown", "khutbah_quiet"]
+const ALERT_KEYS: AlertType[] = ["azan_countdown", "azan_now", "iqamah", "khutbah_countdown"]
 
 const ALERT_DURATION_MINS: Record<AlertType, number> = {
   azan_countdown: 15,
   azan_now: 5,
   iqamah: 10,
   khutbah_countdown: 12,
-  khutbah_quiet: 30,
 }
 
 /** Test mode durations in seconds (shorter for quick testing) */
@@ -68,7 +65,6 @@ const TEST_DURATION_SECONDS: Record<Exclude<TestAlertType, "none">, number> = {
   azan_now: 5,
   iqamah: 10,
   khutbah_countdown: 12,
-  khutbah_quiet: 30,
 }
 
 const ALERT_STORAGE_KEY = "waktu-display-alerts"
@@ -558,9 +554,6 @@ export function DisplayClient() {
         case "khutbah_countdown":
           setAlertState({ type: "khutbah_countdown", minutes: 12 })
           break
-        case "khutbah_quiet":
-          setAlertState({ type: "khutbah_quiet" })
-          break
         default:
           setAlertState({ type: "none" })
       }
@@ -762,7 +755,7 @@ export function DisplayClient() {
           }
         }
         setAlertState(
-          enabledAlerts.khutbah_quiet ? { type: "khutbah_quiet" } : { type: "none" },
+          { type: "none" },
         )
         return
       }
@@ -929,7 +922,6 @@ export function DisplayClient() {
     { value: "azan_now", label: t.testAzanNow },
     { value: "iqamah", label: t.testIqamah },
     { value: "khutbah_countdown", label: t.testKhutbah },
-    { value: "khutbah_quiet", label: t.pleaseQuiet.substring(0, 20) + "..." },
   ]
 
   const currentTestAlertLabel =
@@ -958,9 +950,6 @@ export function DisplayClient() {
         break
       case "khutbah_countdown":
         alertText = `${t.khutbahStartsIn} ${alertState.minutes} ${t.mins}`
-        break
-      case "khutbah_quiet":
-        alertText = t.pleaseQuiet
         break
     }
 
@@ -1000,13 +989,6 @@ export function DisplayClient() {
   }
 
   return (
-    <>
-    <style>{`
-      @keyframes breathing {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.15); opacity: 0.7; }
-      }
-    `}</style>
     <div
       style={{
         position: "fixed",
@@ -1174,7 +1156,6 @@ export function DisplayClient() {
             !isWithin15Mins ||
             alertState.type === "iqamah" ||
             alertState.type === "khutbah_countdown" ||
-            alertState.type === "khutbah_quiet" ||
             (alertState.type === "sunrise_countdown" && !isSyuruk)
           )
 
@@ -1199,7 +1180,7 @@ export function DisplayClient() {
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: hasAlert ? "8px" : "12px", marginBottom: "4px", lineHeight: 1.2 }}>
-                <Icon style={{ width: iconSize, height: iconSize, color: "#ffffff", animation: isNext ? "breathing 2s ease-in-out infinite" : undefined }} />
+                <Icon style={{ width: iconSize, height: iconSize, color: "#ffffff" }} />
                 <span style={{ fontSize: nameSize, fontWeight: 600, color: "#ffffff", lineHeight: 1.2 }}>
                   {prayerName}
                 </span>
@@ -1597,47 +1578,6 @@ export function DisplayClient() {
                     </button>
                   </div>
 
-                  <div>
-                    <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                      {t.timeFormat}
-                    </label>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button
-                        onClick={() => setTempTimeFormat("12h")}
-                        style={{
-                          flex: 1,
-                          padding: "12px",
-                          backgroundColor: tempTimeFormat === "12h" ? "#3b82f6" : "#27272a",
-                          border: "none",
-                          borderRadius: "8px",
-                          color: "#ffffff",
-                          fontSize: "14px",
-                          fontWeight: 500,
-                          cursor: "pointer",
-                          fontFamily: '"Inter", system-ui, sans-serif',
-                        }}
-                      >
-                        {t.timeFormat12h}
-                      </button>
-                      <button
-                        onClick={() => setTempTimeFormat("24h")}
-                        style={{
-                          flex: 1,
-                          padding: "12px",
-                          backgroundColor: tempTimeFormat === "24h" ? "#3b82f6" : "#27272a",
-                          border: "none",
-                          borderRadius: "8px",
-                          color: "#ffffff",
-                          fontSize: "14px",
-                          fontWeight: 500,
-                          cursor: "pointer",
-                          fontFamily: '"Inter", system-ui, sans-serif',
-                        }}
-                      >
-                        {t.timeFormat24h}
-                      </button>
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -1695,13 +1635,12 @@ export function DisplayClient() {
                     </div>
 
                     <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAfter}</p>
-                    {(["iqamah", "khutbah_countdown", "khutbah_quiet"] as AlertType[]).map((key) => {
+                    {(["iqamah", "khutbah_countdown"] as AlertType[]).map((key) => {
                       const alertLabels: Record<AlertType, string> = {
                         azan_countdown: t.testAzanCountdown,
                         azan_now: t.testAzanNow,
                         iqamah: t.testIqamah,
                         khutbah_countdown: t.testKhutbah,
-                        khutbah_quiet: t.pleaseQuiet.substring(0, 24) + "...",
                       }
                       return (
                         <div
@@ -1817,6 +1756,49 @@ export function DisplayClient() {
                   </div>
                 </div>
 
+                {/* Time Format */}
+                <div>
+                  <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                    {t.timeFormat}
+                  </label>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      onClick={() => setTempTimeFormat("12h")}
+                      style={{
+                        flex: 1,
+                        padding: "12px",
+                        backgroundColor: tempTimeFormat === "12h" ? "#3b82f6" : "#27272a",
+                        border: "none",
+                        borderRadius: "8px",
+                        color: "#ffffff",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        fontFamily: '"Inter", system-ui, sans-serif',
+                      }}
+                    >
+                      {t.timeFormat12h}
+                    </button>
+                    <button
+                      onClick={() => setTempTimeFormat("24h")}
+                      style={{
+                        flex: 1,
+                        padding: "12px",
+                        backgroundColor: tempTimeFormat === "24h" ? "#3b82f6" : "#27272a",
+                        border: "none",
+                        borderRadius: "8px",
+                        color: "#ffffff",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        fontFamily: '"Inter", system-ui, sans-serif',
+                      }}
+                    >
+                      {t.timeFormat24h}
+                    </button>
+                  </div>
+                </div>
+
                 {/* Audio */}
                 <div>
                   <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
@@ -1921,6 +1903,5 @@ export function DisplayClient() {
         </DrawerContent>
       </Drawer>
     </div>
-    </>
   )
 }
