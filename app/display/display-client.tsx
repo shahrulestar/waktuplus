@@ -1000,6 +1000,13 @@ export function DisplayClient() {
   }
 
   return (
+    <>
+    <style>{`
+      @keyframes breathing {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.15); opacity: 0.7; }
+      }
+    `}</style>
     <div
       style={{
         position: "fixed",
@@ -1192,7 +1199,7 @@ export function DisplayClient() {
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: hasAlert ? "8px" : "12px", marginBottom: "4px", lineHeight: 1.2 }}>
-                <Icon style={{ width: iconSize, height: iconSize, color: "#ffffff" }} />
+                <Icon style={{ width: iconSize, height: iconSize, color: "#ffffff", animation: isNext ? "breathing 2s ease-in-out infinite" : undefined }} />
                 <span style={{ fontSize: nameSize, fontWeight: 600, color: "#ffffff", lineHeight: 1.2 }}>
                   {prayerName}
                 </span>
@@ -1204,15 +1211,18 @@ export function DisplayClient() {
                 style={{
                   marginTop: hasAlert ? "4px" : "8px",
                   padding: hasAlert ? "8px 16px" : "12px 24px",
-                  width: "100%",
+                  width: "fit-content",
+                  maxWidth: "100%",
                   boxSizing: "border-box",
-                  minHeight: hasAlert ? "38px" : "52px",
+                  height: "fit-content",
                   visibility: showCountdown ? "visible" : "hidden",
                   display: "flex",
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "2px",
+                  gap: "8px",
+                  marginLeft: "auto",
+                  marginRight: "auto",
                 }}
               >
                 <span
@@ -1222,6 +1232,8 @@ export function DisplayClient() {
                     color: "rgba(255,255,255,0.9)",
                     whiteSpace: "nowrap",
                     flexShrink: 0,
+                    lineHeight: 1,
+                    fontFamily: '"Satoshi", system-ui, sans-serif',
                   }}
                 >
                   {isSyuruk ? t.sunriseIn : t.begins}
@@ -1232,10 +1244,10 @@ export function DisplayClient() {
                     fontWeight: 500,
                     color: "rgba(255,255,255,0.9)",
                     whiteSpace: "nowrap",
-                    fontVariantNumeric: "tabular-nums",
-                    width: "240px",
                     textAlign: "center",
-                    display: "inline-block",
+                    flexShrink: 0,
+                    lineHeight: 1,
+                    fontFamily: '"Satoshi", system-ui, sans-serif',
                   }}
                 >
                   {countdown}
@@ -1281,29 +1293,33 @@ export function DisplayClient() {
       )}
         </div>
       </div>
-      <button
-        onClick={toggleFullscreen}
-        title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-        style={{
-          position: "fixed",
-          bottom: "24px",
-          right: "80px",
-          backgroundColor: "#27272a",
-          border: "none",
-          borderRadius: "8px",
-          padding: "12px",
-          cursor: "pointer",
-          opacity: settingsVisible ? 1 : 0,
-          transition: "opacity 0.3s ease",
-          pointerEvents: settingsVisible ? "auto" : "none",
-        }}
-      >
-        {isFullscreen
-          ? <Shrink style={{ width: "24px", height: "24px", color: "#ffffff" }} />
-          : <Expand style={{ width: "24px", height: "24px", color: "#ffffff" }} />}
-      </button>
+      {viewportWidth >= 768 && (
+        <button
+          onClick={toggleFullscreen}
+          title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+          style={{
+            position: "fixed",
+            bottom: "24px",
+            right: "80px",
+            backgroundColor: "#27272a",
+            border: "none",
+            borderRadius: "8px",
+            padding: "12px",
+            cursor: "pointer",
+            opacity: settingsVisible ? 1 : 0,
+            transition: "opacity 0.3s ease",
+            pointerEvents: settingsVisible ? "auto" : "none",
+            zIndex: 1000,
+          }}
+        >
+          {isFullscreen
+            ? <Shrink style={{ width: "24px", height: "24px", color: "#ffffff" }} />
+            : <Expand style={{ width: "24px", height: "24px", color: "#ffffff" }} />}
+        </button>
+      )}
       <button
         onClick={openSettings}
+        title={t.settings}
         style={{
           position: "fixed",
           bottom: "24px",
@@ -1352,12 +1368,12 @@ export function DisplayClient() {
               borderRadius: "8px",
               padding: "24px",
               width: "100%",
-              maxWidth: viewportWidth >= 768 ? "768px" : "400px",
+              maxWidth: viewportWidth >= 768 ? "900px" : "400px",
               maxHeight: "90vh",
               overflowY: "auto",
               position: "relative",
               fontFamily: '"Satoshi", system-ui, sans-serif',
-              height: "auto",
+              height: viewportWidth >= 768 ? "auto" : "auto",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1372,223 +1388,70 @@ export function DisplayClient() {
                 alignItems: "flex-start",
               }}
             >
-              <div style={{ flex: "1 1 0%", minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined, height: "fit-content" }}>
-                <div style={{ marginBottom: "16px" }}>
-              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                {t.customTitle}
-              </label>
-              <input
-                type="text"
-                value={tempCustomTitle}
-                onChange={(e) => setTempCustomTitle(e.target.value)}
-                placeholder={t.customTitlePlaceholder}
-                className="placeholder-inter"
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  backgroundColor: "#27272a",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#ffffff",
-                  fontSize: "14px",
-                  outline: "none",
-                  boxSizing: "border-box",
-                  fontFamily: '"Satoshi", system-ui, sans-serif',
-                }}
-              />
-            </div>
+              {/* Left: Display Identity + Location & Prayer Time */}
+              <div style={{ flex: "1 1 0%", minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined, display: "flex", flexDirection: "column", gap: "24px" }}>
 
-            <div style={{ marginBottom: "16px" }}>
-              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                {t.themeColor}
-              </label>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                {themeColorKeys.map((colorKey) => (
-                  <button
-                    key={colorKey}
-                    onClick={() => setTempThemeColor(colorKey)}
-                    style={{
-                      width: "40px",
-                      height: "40px",
-                      borderRadius: "50%",
-                      backgroundColor: themeColorMap[colorKey].primary,
-                      border: tempThemeColor === colorKey ? "3px solid #ffffff" : "3px solid transparent",
-                      cursor: "pointer",
-                      transform: tempThemeColor === colorKey ? "scale(1.15)" : "scale(1)",
-                      transition: "transform 0.15s ease, border-color 0.15s ease",
-                      outline: "none",
-                      padding: 0,
-                    }}
-                    title={themeColorMap[colorKey].label}
-                  />
-                ))}
-              </div>
-            </div>
+                {/* Display Identity */}
+                <div>
+                  <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.sectionDisplayIdentity}</h3>
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif' }}>{t.sectionDisplayIdentityDesc}</p>
+                  </div>
 
-            <div style={{ marginBottom: "16px" }}>
-              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                {t.prayerZone}
-              </label>
-              <ZoneSelector
-                value={tempZone}
-                onChange={setTempZone}
-                className="placeholder-inter [&_[data-slot=input-group-button]]:hover:bg-transparent [&_[data-slot=input-group-button]]:hover:text-current"
-                open={zoneSelectorOpen && !showTestAlertDropdown}
-                onOpenChange={(isOpen) => {
-                  setZoneSelectorOpen(isOpen)
-                  if (isOpen) setShowTestAlertDropdown(false)
-                }}
-              />
-              <p style={{ fontSize: "12px", color: "#a1a1aa", marginTop: "8px", marginBottom: 0 }}>
-                {t.zoneSource}
-              </p>
-              <button
-                type="button"
-                onClick={handleLocateMe}
-                disabled={isLocating}
-                style={{
-                  width: "100%",
-                  marginTop: "12px",
-                  padding: "10px 16px",
-                  backgroundColor: "#2563eb",
-                  color: "#ffffff",
-                  fontWeight: 500,
-                  fontSize: "14px",
-                  borderRadius: "8px",
-                  border: "none",
-                  cursor: isLocating ? "wait" : "pointer",
-                  opacity: isLocating ? 0.7 : 1,
-                  fontFamily: '"Inter", system-ui, sans-serif',
-                }}
-              >
-                {isLocating ? (language === "ms" ? "Mengesan..." : "Detecting...") : t.locateMe}
-              </button>
-            </div>
+                  <div style={{ marginBottom: "12px" }}>
+                    <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                      {t.customTitle}
+                    </label>
+                    <input
+                      type="text"
+                      value={tempCustomTitle}
+                      onChange={(e) => setTempCustomTitle(e.target.value)}
+                      placeholder={t.customTitlePlaceholder}
+                      className="placeholder-inter"
+                      style={{
+                        width: "100%",
+                        padding: "12px",
+                        backgroundColor: "#27272a",
+                        border: "none",
+                        borderRadius: "8px",
+                        color: "#ffffff",
+                        fontSize: "14px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                        fontFamily: '"Satoshi", system-ui, sans-serif',
+                      }}
+                    />
+                  </div>
 
-            <div style={{ marginBottom: "16px" }}>
-              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                {t.displayOptions}
-              </label>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "8px 12px",
-                    backgroundColor: "#27272a",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
-                    {t.showZone}
-                  </span>
-                  <Switch
-                    checked={tempShowZone}
-                    onCheckedChange={setTempShowZone}
-                  />
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "8px 12px",
-                    backgroundColor: "#27272a",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
-                    {t.showHeader}
-                  </span>
-                  <Switch
-                    checked={tempShowHeader}
-                    onCheckedChange={setTempShowHeader}
-                  />
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "8px 12px",
-                    backgroundColor: "#27272a",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
-                    {t.autoRefresh}
-                  </span>
-                  <Switch
-                    checked={tempAutoRefresh}
-                    onCheckedChange={setTempAutoRefresh}
-                  />
-                </div>
-              </div>
-            </div>
+                  <div style={{ marginBottom: "12px" }}>
+                    <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                      {t.themeColor}
+                    </label>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      {themeColorKeys.map((colorKey) => (
+                        <button
+                          key={colorKey}
+                          onClick={() => setTempThemeColor(colorKey)}
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "50%",
+                            backgroundColor: themeColorMap[colorKey].primary,
+                            border: tempThemeColor === colorKey ? "3px solid #ffffff" : "3px solid transparent",
+                            cursor: "pointer",
+                            transform: tempThemeColor === colorKey ? "scale(1.15)" : "scale(1)",
+                            transition: "transform 0.15s ease, border-color 0.15s ease",
+                            outline: "none",
+                            padding: 0,
+                          }}
+                          title={themeColorMap[colorKey].label}
+                        />
+                      ))}
+                    </div>
+                  </div>
 
-            <div style={{ marginBottom: "24px" }}>
-              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                {t.language}
-              </label>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  onClick={() => setTempLanguage("en")}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    backgroundColor: tempLanguage === "en" ? "#3b82f6" : "#27272a",
-                    border: "none",
-                    borderRadius: "8px",
-                    color: "#ffffff",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    fontFamily: '"Inter", system-ui, sans-serif',
-                  }}
-                >
-                  {t.english}
-                </button>
-                <button
-                  onClick={() => setTempLanguage("ms")}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    backgroundColor: tempLanguage === "ms" ? "#3b82f6" : "#27272a",
-                    border: "none",
-                    borderRadius: "8px",
-                    color: "#ffffff",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    fontFamily: '"Inter", system-ui, sans-serif',
-                  }}
-                >
-                  {t.bahasaMelayu}
-                </button>
-              </div>
-              </div>
-
-              </div>
-
-              <div style={{ flex: "1 1 0%", minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined, height: "fit-content" }}>
-            <div style={{ marginBottom: "24px" }}>
-              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                {t.alertsToShow}
-              </label>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {ALERT_KEYS.map((key) => {
-                  const alertLabels: Record<AlertType, string> = {
-                    azan_countdown: t.testAzanCountdown,
-                    azan_now: t.testAzanNow,
-                    iqamah: t.testIqamah,
-                    khutbah_countdown: t.testKhutbah,
-                    khutbah_quiet: t.pleaseQuiet.substring(0, 24) + "...",
-                  }
-                  const isEnabled = tempEnabledAlerts[key]
-                  return (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
                     <div
-                      key={key}
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
@@ -1599,205 +1462,417 @@ export function DisplayClient() {
                       }}
                     >
                       <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
-                        {alertLabels[key]} ({ALERT_DURATION_MINS[key]} {t.mins})
+                        {t.showHeader}
                       </span>
                       <Switch
-                        checked={isEnabled}
-                        onCheckedChange={(checked) =>
-                          setTempEnabledAlerts((prev) => ({ ...prev, [key]: checked }))
-                        }
+                        checked={tempShowHeader}
+                        onCheckedChange={setTempShowHeader}
+                      />
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "8px 12px",
+                        backgroundColor: "#27272a",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                        {t.showZone}
+                      </span>
+                      <Switch
+                        checked={tempShowZone}
+                        onCheckedChange={setTempShowZone}
+                      />
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "8px 12px",
+                        backgroundColor: "#27272a",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                        {t.autoRefresh}
+                      </span>
+                      <Switch
+                        checked={tempAutoRefresh}
+                        onCheckedChange={setTempAutoRefresh}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: "12px" }}>
+                    <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                      {t.language}
+                    </label>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        onClick={() => setTempLanguage("en")}
+                        style={{
+                          flex: 1,
+                          padding: "12px",
+                          backgroundColor: tempLanguage === "en" ? "#3b82f6" : "#27272a",
+                          border: "none",
+                          borderRadius: "8px",
+                          color: "#ffffff",
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          cursor: "pointer",
+                          fontFamily: '"Inter", system-ui, sans-serif',
+                        }}
+                      >
+                        {t.english}
+                      </button>
+                      <button
+                        onClick={() => setTempLanguage("ms")}
+                        style={{
+                          flex: 1,
+                          padding: "12px",
+                          backgroundColor: tempLanguage === "ms" ? "#3b82f6" : "#27272a",
+                          border: "none",
+                          borderRadius: "8px",
+                          color: "#ffffff",
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          cursor: "pointer",
+                          fontFamily: '"Inter", system-ui, sans-serif',
+                        }}
+                      >
+                        {t.bahasaMelayu}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location & Prayer Time */}
+                <div>
+                  <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.sectionLocation}</h3>
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif' }}>{t.sectionLocationDesc}</p>
+                  </div>
+
+                  <div style={{ marginBottom: "12px" }}>
+                    <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                      {t.prayerZone}
+                    </label>
+                    <ZoneSelector
+                      value={tempZone}
+                      onChange={setTempZone}
+                      className="placeholder-inter [&_[data-slot=input-group-button]]:hover:bg-transparent [&_[data-slot=input-group-button]]:hover:text-current"
+                      open={zoneSelectorOpen && !showTestAlertDropdown}
+                      onOpenChange={(isOpen) => {
+                        setZoneSelectorOpen(isOpen)
+                        if (isOpen) setShowTestAlertDropdown(false)
+                      }}
+                    />
+                    <p style={{ fontSize: "12px", color: "#a1a1aa", marginTop: "8px", marginBottom: 0 }}>
+                      {t.zoneSource}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleLocateMe}
+                      disabled={isLocating}
+                      style={{
+                        width: "100%",
+                        marginTop: "12px",
+                        padding: "10px 16px",
+                        backgroundColor: "#2563eb",
+                        color: "#ffffff",
+                        fontWeight: 500,
+                        fontSize: "14px",
+                        borderRadius: "8px",
+                        border: "none",
+                        cursor: isLocating ? "wait" : "pointer",
+                        opacity: isLocating ? 0.7 : 1,
+                        fontFamily: '"Inter", system-ui, sans-serif',
+                      }}
+                    >
+                      {isLocating ? (language === "ms" ? "Mengesan..." : "Detecting...") : t.locateMe}
+                    </button>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                      {t.timeFormat}
+                    </label>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        onClick={() => setTempTimeFormat("12h")}
+                        style={{
+                          flex: 1,
+                          padding: "12px",
+                          backgroundColor: tempTimeFormat === "12h" ? "#3b82f6" : "#27272a",
+                          border: "none",
+                          borderRadius: "8px",
+                          color: "#ffffff",
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          cursor: "pointer",
+                          fontFamily: '"Inter", system-ui, sans-serif',
+                        }}
+                      >
+                        {t.timeFormat12h}
+                      </button>
+                      <button
+                        onClick={() => setTempTimeFormat("24h")}
+                        style={{
+                          flex: 1,
+                          padding: "12px",
+                          backgroundColor: tempTimeFormat === "24h" ? "#3b82f6" : "#27272a",
+                          border: "none",
+                          borderRadius: "8px",
+                          color: "#ffffff",
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          cursor: "pointer",
+                          fontFamily: '"Inter", system-ui, sans-serif',
+                        }}
+                      >
+                        {t.timeFormat24h}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Alerts & Behaviour + Audio */}
+              <div style={{ flex: "1 1 0%", minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined, display: "flex", flexDirection: "column", gap: "24px" }}>
+
+                {/* Alerts & Behaviour */}
+                <div>
+                  <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.sectionAlerts}</h3>
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif' }}>{t.sectionAlertsDesc}</p>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: 0, fontFamily: '"Inter", system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertBefore}</p>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "8px 12px",
+                        backgroundColor: "#27272a",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                        {t.testAzanCountdown} ({ALERT_DURATION_MINS.azan_countdown} {t.mins})
+                      </span>
+                      <Switch
+                        checked={tempEnabledAlerts.azan_countdown}
+                        onCheckedChange={(checked) => setTempEnabledAlerts((prev) => ({ ...prev, azan_countdown: checked }))}
                         disabled={isAzanPlaying}
                       />
                     </div>
-                  )
-                })}
-              </div>
-            </div>
 
-            <div style={{ marginBottom: "24px" }}>
-              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                {t.testAlerts}
-              </label>
-              <div style={{ position: "relative" }}>
-                <button
-                  onClick={() => {
-                    if (isAzanPlaying) return
-                    setShowTestAlertDropdown((prev) => {
-                      if (!prev) setZoneSelectorOpen(false)
-                      return !prev
-                    })
-                  }}
-                  disabled={isAzanPlaying}
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    backgroundColor: "#27272a",
-                    border: "1px solid #3f3f46",
-                    borderRadius: "8px",
-                    color: "#ffffff",
-                    fontSize: "14px",
-                    textAlign: "left",
-                    cursor: isAzanPlaying ? "not-allowed" : "pointer",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    fontFamily: '"Inter", system-ui, sans-serif',
-                    opacity: isAzanPlaying ? 0.6 : 1,
-                  }}
-                >
-                  <span style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>{currentTestAlertLabel}</span>
-                  <ChevronDown
-                    style={{
-                      width: "16px",
-                      height: "16px",
-                      flexShrink: 0,
-                      transform: showTestAlertDropdown ? "rotate(180deg)" : "rotate(0deg)",
-                      transition: "transform 0.2s",
-                    }}
-                  />
-                </button>
-                {showTestAlertDropdown && (
-                  <div
-                    className="scrollbar-hide"
-                    style={{
-                      position: "absolute",
-                      bottom: "100%",
-                      left: 0,
-                      right: 0,
-                      backgroundColor: "#27272a",
-                      borderRadius: "8px",
-                      border: "1px solid #3f3f46",
-                      marginBottom: "4px",
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                      zIndex: 100,
-                    }}
-                  >
-                    {testAlertOptions.map((option) => (
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAt}</p>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "8px 12px",
+                        backgroundColor: "#27272a",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                        {t.testAzanNow} ({ALERT_DURATION_MINS.azan_now} {t.mins})
+                      </span>
+                      <Switch
+                        checked={tempEnabledAlerts.azan_now}
+                        onCheckedChange={(checked) => setTempEnabledAlerts((prev) => ({ ...prev, azan_now: checked }))}
+                        disabled={isAzanPlaying}
+                      />
+                    </div>
+
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAfter}</p>
+                    {(["iqamah", "khutbah_countdown", "khutbah_quiet"] as AlertType[]).map((key) => {
+                      const alertLabels: Record<AlertType, string> = {
+                        azan_countdown: t.testAzanCountdown,
+                        azan_now: t.testAzanNow,
+                        iqamah: t.testIqamah,
+                        khutbah_countdown: t.testKhutbah,
+                        khutbah_quiet: t.pleaseQuiet.substring(0, 24) + "...",
+                      }
+                      return (
+                        <div
+                          key={key}
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            padding: "8px 12px",
+                            backgroundColor: "#27272a",
+                            borderRadius: "8px",
+                          }}
+                        >
+                          <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                            {alertLabels[key]} ({ALERT_DURATION_MINS[key]} {t.mins})
+                          </span>
+                          <Switch
+                            checked={tempEnabledAlerts[key]}
+                            onCheckedChange={(checked) => setTempEnabledAlerts((prev) => ({ ...prev, [key]: checked }))}
+                            disabled={isAzanPlaying}
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  <div style={{ marginTop: "12px" }}>
+                    <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                      {t.testAlerts}
+                    </label>
+                    <div style={{ position: "relative" }}>
                       <button
-                        key={option.value}
                         onClick={() => {
                           if (isAzanPlaying) return
-                          setTestMode(option.value === "none" ? null : option.value)
-                          setShowTestAlertDropdown(false)
+                          setShowTestAlertDropdown((prev) => {
+                            if (!prev) setZoneSelectorOpen(false)
+                            return !prev
+                          })
                         }}
                         disabled={isAzanPlaying}
                         style={{
                           width: "100%",
                           padding: "12px",
-                          backgroundColor: (testMode || "none") === option.value ? "#3b82f6" : "transparent",
-                          border: "none",
+                          backgroundColor: "#27272a",
+                          border: "1px solid #3f3f46",
+                          borderRadius: "8px",
                           color: "#ffffff",
                           fontSize: "14px",
                           textAlign: "left",
-                          cursor: "pointer",
+                          cursor: isAzanPlaying ? "not-allowed" : "pointer",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
                           fontFamily: '"Inter", system-ui, sans-serif',
+                          opacity: isAzanPlaying ? 0.6 : 1,
                         }}
                       >
-                        {option.label}
+                        <span style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>{currentTestAlertLabel}</span>
+                        <ChevronDown
+                          style={{
+                            width: "16px",
+                            height: "16px",
+                            flexShrink: 0,
+                            transform: showTestAlertDropdown ? "rotate(180deg)" : "rotate(0deg)",
+                            transition: "transform 0.2s",
+                          }}
+                        />
                       </button>
-                    ))}
+                      {showTestAlertDropdown && (
+                        <div
+                          className="scrollbar-hide"
+                          style={{
+                            position: "absolute",
+                            bottom: "100%",
+                            left: 0,
+                            right: 0,
+                            backgroundColor: "#27272a",
+                            borderRadius: "8px",
+                            border: "1px solid #3f3f46",
+                            marginBottom: "4px",
+                            maxHeight: "200px",
+                            overflowY: "auto",
+                            zIndex: 100,
+                          }}
+                        >
+                          {testAlertOptions.map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => {
+                                if (isAzanPlaying) return
+                                setTestMode(option.value === "none" ? null : option.value)
+                                setShowTestAlertDropdown(false)
+                              }}
+                              disabled={isAzanPlaying}
+                              style={{
+                                width: "100%",
+                                padding: "12px",
+                                backgroundColor: (testMode || "none") === option.value ? "#3b82f6" : "transparent",
+                                border: "none",
+                                color: "#ffffff",
+                                fontSize: "14px",
+                                textAlign: "left",
+                                cursor: "pointer",
+                                fontFamily: '"Inter", system-ui, sans-serif',
+                              }}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: "24px" }}>
-              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                {t.azanSound}
-              </label>
-              <div
-                style={{
-                  padding: "12px",
-                  backgroundColor: "#27272a",
-                  borderRadius: "8px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "13px", color: "#a1a1aa", flex: 1, marginRight: "12px", fontFamily: '"Inter", system-ui, sans-serif' }}>
-                    {t.azanSoundDescription}
-                  </span>
-                  <Switch
-                    checked={tempAzanSoundEnabled}
-                    onCheckedChange={setTempAzanSoundEnabled}
-                    disabled={isAzanPlaying}
-                  />
                 </div>
-                <button
-                  onClick={() => {
-                    if (isAzanPlaying) return
-                    if (isTestingAzan) {
-                      stopAzanSound()
-                    } else {
-                      setIsTestingAzan(true)
-                      playAzanSound()
-                    }
-                  }}
-                  disabled={isAzanPlaying}
-                  style={{
-                    width: "100%",
-                    padding: "10px 16px",
-                    backgroundColor: isTestingAzan ? "#ef4444" : "#2563eb",
-                    border: "none",
-                    borderRadius: "8px",
-                    color: "#ffffff",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    cursor: isAzanPlaying ? "not-allowed" : "pointer",
-                    fontFamily: '"Inter", system-ui, sans-serif',
-                    transition: "background-color 0.15s ease",
-                    opacity: isAzanPlaying ? 0.6 : 1,
-                  }}
-                >
-                  {isTestingAzan ? t.stopAzan : t.playAzan}
-                </button>
-              </div>
-            </div>
 
-            <div style={{ marginBottom: "24px" }}>
-              <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                {t.timeFormat}
-              </label>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  onClick={() => setTempTimeFormat("12h")}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    backgroundColor: tempTimeFormat === "12h" ? "#3b82f6" : "#27272a",
-                    border: "none",
-                    borderRadius: "8px",
-                    color: "#ffffff",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    fontFamily: '"Inter", system-ui, sans-serif',
-                  }}
-                >
-                  {t.timeFormat12h}
-                </button>
-                <button
-                  onClick={() => setTempTimeFormat("24h")}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    backgroundColor: tempTimeFormat === "24h" ? "#3b82f6" : "#27272a",
-                    border: "none",
-                    borderRadius: "8px",
-                    color: "#ffffff",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    fontFamily: '"Inter", system-ui, sans-serif',
-                  }}
-                >
-                  {t.timeFormat24h}
-                </button>
-              </div>
-            </div>
+                {/* Audio */}
+                <div>
+                  <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.sectionAudio}</h3>
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif' }}>{t.sectionAudioDesc}</p>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "8px 12px",
+                      backgroundColor: "#27272a",
+                      borderRadius: "8px",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                      {t.azanSound}
+                    </span>
+                    <Switch
+                      checked={tempAzanSoundEnabled}
+                      onCheckedChange={setTempAzanSoundEnabled}
+                      disabled={isAzanPlaying}
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (isAzanPlaying) return
+                      if (isTestingAzan) {
+                        stopAzanSound()
+                      } else {
+                        setIsTestingAzan(true)
+                        playAzanSound()
+                      }
+                    }}
+                    disabled={isAzanPlaying}
+                    style={{
+                      width: "100%",
+                      padding: "10px 16px",
+                      backgroundColor: isTestingAzan ? "#ef4444" : "#2563eb",
+                      border: "none",
+                      borderRadius: "8px",
+                      color: "#ffffff",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      cursor: isAzanPlaying ? "not-allowed" : "pointer",
+                      fontFamily: '"Inter", system-ui, sans-serif',
+                      transition: "background-color 0.15s ease",
+                      opacity: isAzanPlaying ? 0.6 : 1,
+                    }}
+                  >
+                    {isTestingAzan ? t.stopAzan : t.playAzan}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1846,5 +1921,6 @@ export function DisplayClient() {
         </DrawerContent>
       </Drawer>
     </div>
+    </>
   )
 }
