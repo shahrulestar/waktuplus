@@ -34,7 +34,7 @@ interface PrayerData {
 type AlertState =
   | { type: "none" }
   | { type: "azan_countdown"; prayerName: string; minutes: number }
-  | { type: "azan_now"; prayerName: string }
+  | { type: "azan_now"; prayerName: string; prayerKey: string }
   | { type: "iqamah"; minutes: number }
   | { type: "khutbah_countdown"; minutes: number }
   | { type: "khutbah_quiet" }
@@ -187,6 +187,8 @@ export function DisplayClient() {
   const [tempEnabledAlerts, setTempEnabledAlerts] = useState<Record<AlertType, boolean>>(DEFAULT_ENABLED_ALERTS)
   const [azanSoundEnabled, setAzanSoundEnabled] = useState(true)
   const [tempAzanSoundEnabled, setTempAzanSoundEnabled] = useState(true)
+  const [autoRefresh, setAutoRefresh] = useState(false)
+  const [tempAutoRefresh, setTempAutoRefresh] = useState(false)
   const [showAzanBanner, setShowAzanBanner] = useState(false)
   const [isTestingAzan, setIsTestingAzan] = useState(false)
   const azanAudioRef = useRef<HTMLAudioElement | null>(null)
@@ -270,6 +272,9 @@ export function DisplayClient() {
       const soundEnabled = storedAzanSound !== null ? storedAzanSound === "true" : true
       setAzanSoundEnabled(soundEnabled)
 
+      const storedAutoRefresh = localStorage.getItem("waktu-display-auto-refresh")
+      setAutoRefresh(storedAutoRefresh === "true")
+
       const bannerDismissed = localStorage.getItem("waktu-display-azan-banner-dismissed") === "true"
       if (!bannerDismissed && window.innerWidth >= 768) {
         setShowAzanBanner(true)
@@ -278,6 +283,12 @@ export function DisplayClient() {
       console.error("Failed to read display settings:", e)
     }
   }, [])
+
+  useEffect(() => {
+    if (!autoRefresh) return
+    const interval = setInterval(() => window.location.reload(), 3_600_000)
+    return () => clearInterval(interval)
+  }, [autoRefresh])
 
   // Show banner when tab becomes visible (handles "already open" case)
   useEffect(() => {
@@ -295,12 +306,13 @@ export function DisplayClient() {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
   }, [])
 
-  const playAzanSound = useCallback((onEnded?: () => void) => {
+  const playAzanSound = useCallback((prayerKey?: string, onEnded?: () => void) => {
     if (azanAudioRef.current) {
       azanAudioRef.current.pause()
       azanAudioRef.current.currentTime = 0
     }
-    const audio = new Audio("/azan-new.mp3")
+    const src = prayerKey === "subuh" ? "/azan-subuh.mp3" : "/azan-new.mp3"
+    const audio = new Audio(src)
     audio.loop = false
     azanAudioRef.current = audio
     audio.play().catch((e) => console.error("Failed to play azan sound:", e))
@@ -323,9 +335,8 @@ export function DisplayClient() {
     const isAzanNow = alertState.type === "azan_now"
     const alreadyPlaying = azanAudioRef.current && !azanAudioRef.current.paused
     if (isAzanNow && azanSoundEnabled && !alreadyPlaying) {
-      playAzanSound()
+      playAzanSound(alertState.prayerKey)
     }
-    // Don't stop during post-azan window - let audio play until it ends naturally
     const inPostAzanWindow = inPostAzanWindowRef.current
     const shouldNotStop =
       alertState.type === "iqamah" ||
@@ -483,10 +494,11 @@ export function DisplayClient() {
           setAlertState({ type: "azan_countdown", prayerName: testPrayerName, minutes: 15 })
           break
         case "azan_now": {
-          setAlertState({ type: "azan_now", prayerName: testPrayerName })
+          const key = nextPrayerKey ?? "zohor"
+          setAlertState({ type: "azan_now", prayerName: testPrayerName, prayerKey: key })
           const alreadyPlaying = azanAudioRef.current && !azanAudioRef.current.paused
           if (azanSoundEnabled && !alreadyPlaying) {
-            playAzanSound(() => {
+            playAzanSound(key, () => {
               setTestMode(null)
               setAlertState({ type: "none" })
             })
@@ -581,7 +593,7 @@ export function DisplayClient() {
           isFriday && prayerKeysForAlerts[i] === "zohor",
         )
         setAlertState(
-          enabledAlerts.azan_now ? { type: "azan_now", prayerName } : { type: "none" },
+          enabledAlerts.azan_now ? { type: "azan_now", prayerName, prayerKey: prayerKeysForAlerts[i] } : { type: "none" },
         )
         setIqamahForPrayer(prayerKeysForAlerts[i])
         return
@@ -807,6 +819,7 @@ export function DisplayClient() {
     setTempThemeColor(themeColor)
     setTempEnabledAlerts({ ...enabledAlerts })
     setTempAzanSoundEnabled(azanSoundEnabled)
+    setTempAutoRefresh(autoRefresh)
     setShowSettings(true)
   }
 
@@ -823,12 +836,14 @@ export function DisplayClient() {
     setThemeColor(tempThemeColor)
     setEnabledAlerts(tempEnabledAlerts)
     setAzanSoundEnabled(tempAzanSoundEnabled)
+    setAutoRefresh(tempAutoRefresh)
     try {
       localStorage.setItem("waktu-display-theme", tempThemeColor)
       localStorage.setItem("waktu-display-show-zone", String(tempShowZone))
       localStorage.setItem("waktu-display-show-header", String(tempShowHeader))
       localStorage.setItem(ALERT_STORAGE_KEY, JSON.stringify(tempEnabledAlerts))
       localStorage.setItem("waktu-display-azan-sound", String(tempAzanSoundEnabled))
+      localStorage.setItem("waktu-display-auto-refresh", String(tempAutoRefresh))
     } catch (e) {
       console.error("Failed to save display settings:", e)
     }
@@ -1389,6 +1404,24 @@ export function DisplayClient() {
                     onCheckedChange={setTempShowHeader}
                   />
                 </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "8px 12px",
+                    backgroundColor: "#27272a",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                    {t.autoRefresh}
+                  </span>
+                  <Switch
+                    checked={tempAutoRefresh}
+                    onCheckedChange={setTempAutoRefresh}
+                  />
+                </div>
               </div>
             </div>
 
@@ -1622,7 +1655,7 @@ export function DisplayClient() {
             </div>
 
             <button
-              onClick={saveSettings}
+              onClick={() => saveSettings()}
               style={{
                 width: "100%",
                 padding: "12px",
