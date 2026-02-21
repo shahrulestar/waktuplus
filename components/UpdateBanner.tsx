@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useVersionCheck } from "@/hooks/useVersionCheck"
 
@@ -42,13 +41,6 @@ export function UpdateBanner() {
       <span className="text-sm font-medium">
         A new version is available. Refreshing in {countdown}s
       </span>
-      <Button
-        variant="default"
-        size="sm"
-        onClick={() => window.location.reload()}
-      >
-        Refresh now
-      </Button>
     </div>
   )
 }

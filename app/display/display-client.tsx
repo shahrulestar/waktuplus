@@ -85,7 +85,7 @@ function loadEnabledAlerts(): Record<AlertType, boolean> {
   }
 }
 
-type ThemeColor = "blue" | "indigo" | "pink" | "rose" | "emerald" | "yellow" | "orange"
+type ThemeColor = "blue" | "indigo" | "pink" | "rose" | "emerald" | "yellow" | "orange" | "sky" | "stone"
 
 const themeColorMap: Record<ThemeColor, { primary: string; gradient: string; label: string }> = {
   blue: { primary: "#3b82f6", gradient: "#2563eb", label: "Blue" },
@@ -95,9 +95,11 @@ const themeColorMap: Record<ThemeColor, { primary: string; gradient: string; lab
   emerald: { primary: "#10b981", gradient: "#059669", label: "Emerald" },
   yellow: { primary: "#eab308", gradient: "#ca8a04", label: "Yellow" },
   orange: { primary: "#f97316", gradient: "#ea580c", label: "Orange" },
+  sky: { primary: "#0ea5e9", gradient: "#0284c7", label: "Sky" },
+  stone: { primary: "#78716c", gradient: "#57534e", label: "Stone" },
 }
 
-const themeColorKeys: ThemeColor[] = ["blue", "indigo", "pink", "rose", "emerald", "yellow", "orange"]
+const themeColorKeys: ThemeColor[] = ["blue", "indigo", "pink", "rose", "emerald", "yellow", "orange", "sky", "stone"]
 
 const prayerIcons = {
   subuh: Moon,
@@ -1379,7 +1381,7 @@ export function DisplayClient() {
                     <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif' }}>{t.sectionDisplayIdentityDesc}</p>
                   </div>
 
-                  <div style={{ marginBottom: "12px" }}>
+                  <div style={{ marginBottom: "16px" }}>
                     <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
                       {t.customTitle}
                     </label>
@@ -1404,18 +1406,19 @@ export function DisplayClient() {
                     />
                   </div>
 
-                  <div style={{ marginBottom: "12px" }}>
+                  <div style={{ marginBottom: "16px" }}>
                     <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
                       {t.themeColor}
                     </label>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: "8px" }}>
                       {themeColorKeys.map((colorKey) => (
                         <button
                           key={colorKey}
                           onClick={() => setTempThemeColor(colorKey)}
                           style={{
-                            width: "40px",
-                            height: "40px",
+                            flex: "1 1 0%",
+                            aspectRatio: "1",
+                            minWidth: 0,
                             borderRadius: "50%",
                             backgroundColor: themeColorMap[colorKey].primary,
                             border: tempThemeColor === colorKey ? "3px solid #ffffff" : "3px solid transparent",
@@ -1431,7 +1434,7 @@ export function DisplayClient() {
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
                     <div
                       style={{
                         display: "flex",
@@ -1488,7 +1491,7 @@ export function DisplayClient() {
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: "12px" }}>
+                  <div style={{ marginBottom: "16px" }}>
                     <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
                       {t.language}
                     </label>
@@ -1582,7 +1585,7 @@ export function DisplayClient() {
               </div>
 
               {/* Right: Alerts & Behaviour + Audio */}
-              <div style={{ flex: "1 1 0%", minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined, display: "flex", flexDirection: "column", gap: "24px" }}>
+              <div style={{ flex: "1 1 0%", minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined, display: "flex", flexDirection: "column", gap: "28px" }}>
 
                 {/* Alerts & Behaviour */}
                 <div>
@@ -1667,7 +1670,7 @@ export function DisplayClient() {
                     })}
                   </div>
 
-                  <div style={{ marginTop: "12px" }}>
+                  <div style={{ marginTop: "16px" }}>
                     <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
                       {t.testAlerts}
                     </label>
