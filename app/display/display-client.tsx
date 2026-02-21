@@ -56,7 +56,7 @@ const ALERT_DURATION_MINS: Record<AlertType, number> = {
   azan_countdown: 15,
   azan_now: 5,
   iqamah: 10,
-  khutbah_countdown: 12,
+  khutbah_countdown: 8,
 }
 
 /** Test mode durations in seconds (shorter for quick testing) */
@@ -64,7 +64,7 @@ const TEST_DURATION_SECONDS: Record<Exclude<TestAlertType, "none">, number> = {
   azan_countdown: 15,
   azan_now: 5,
   iqamah: 10,
-  khutbah_countdown: 12,
+  khutbah_countdown: 8,
 }
 
 const ALERT_STORAGE_KEY = "waktu-display-alerts"
@@ -227,9 +227,34 @@ export function DisplayClient() {
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
-    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement)
+    const handleFsChange = () => {
+      const fs = !!document.fullscreenElement
+      setIsFullscreen(fs)
+      try { localStorage.setItem("waktu-display-fullscreen", String(fs)) } catch {}
+    }
     document.addEventListener("fullscreenchange", handleFsChange)
     return () => document.removeEventListener("fullscreenchange", handleFsChange)
+  }, [])
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("waktu-display-fullscreen") !== "true") return
+    } catch { return }
+    if (document.fullscreenElement) return
+
+    const restore = () => {
+      document.documentElement.requestFullscreen().catch(() => {})
+      cleanup()
+    }
+    const cleanup = () => {
+      for (const ev of ["click", "keydown", "touchstart", "mousemove"] as const) {
+        document.removeEventListener(ev, restore)
+      }
+    }
+    for (const ev of ["click", "keydown", "touchstart", "mousemove"] as const) {
+      document.addEventListener(ev, restore, { once: false })
+    }
+    return cleanup
   }, [])
 
   const toggleFullscreen = useCallback(() => {
@@ -660,7 +685,7 @@ export function DisplayClient() {
           }
           setAlertState(
             enabledAlerts.khutbah_countdown
-              ? { type: "khutbah_countdown", minutes: 17 - minutesSincePrayer }
+              ? { type: "khutbah_countdown", minutes: 13 - minutesSincePrayer }
               : { type: "none" },
           )
           return
@@ -744,7 +769,7 @@ export function DisplayClient() {
         }
       }
 
-      if (isFriday && prayerKeysForAlerts[i] === "zohor" && minutesSincePrayer >= 17 && minutesSincePrayer < 47) {
+      if (isFriday && prayerKeysForAlerts[i] === "zohor" && minutesSincePrayer >= 13 && minutesSincePrayer < 43) {
         const nextIdx = allPrayerKeys.indexOf("asar")
         if (nextIdx !== -1) {
           setNextPrayerKey("asar")
@@ -1481,9 +1506,14 @@ export function DisplayClient() {
                         borderRadius: "8px",
                       }}
                     >
-                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
-                        {t.autoRefresh}
-                      </span>
+                      <div>
+                        <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif', display: "block" }}>
+                          {t.autoRefresh}
+                        </span>
+                        <span style={{ fontSize: "11px", color: "#71717a", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                          {t.autoRefreshDescription}
+                        </span>
+                      </div>
                       <Switch
                         checked={tempAutoRefresh}
                         onCheckedChange={setTempAutoRefresh}
