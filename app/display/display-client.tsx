@@ -1858,13 +1858,12 @@ export function DisplayClient() {
               </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <div>
               <button
                 onClick={() => saveSettings()}
                 disabled={!hasSettingsChanged}
                 style={{
                   width: "100%",
-                  maxWidth: "150px",
                   padding: "12px",
                   backgroundColor: hasSettingsChanged ? "#3b82f6" : "#27272a",
                   border: "none",
