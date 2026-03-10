@@ -89,7 +89,7 @@ export function VerseOfDay({ language }: VerseOfDayProps) {
 
   return (
     <div style={{ backgroundColor: "#27272a", borderRadius: "8px", padding: "16px" }}>
-      <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "16px", color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.dailyVerse}</h2>
+      <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "16px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.dailyVerse}</h2>
 
       {isLoading ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>

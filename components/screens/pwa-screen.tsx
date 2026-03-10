@@ -45,7 +45,7 @@ export default function PWAScreen() {
           Back
         </Link>
 
-        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#ffffff", margin: "0 0 8px 0", fontFamily: '"Satoshi", system-ui, sans-serif' }}>Waktu+ PWA</h1>
+        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#ffffff", margin: "0 0 8px 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>Waktu+ PWA</h1>
         <p style={{ fontSize: "14px", color: "#a1a1aa", margin: "0 0 24px 0" }}>
           Install Waktu+ as a web app for the best experience
         </p>
@@ -60,7 +60,7 @@ export default function PWAScreen() {
             border: "1px solid #3f3f46",
           }}
         >
-          <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", margin: "0 0 8px 0", fontFamily: '"Satoshi", system-ui, sans-serif' }}>What is PWA?</h2>
+          <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", margin: "0 0 8px 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>What is PWA?</h2>
           <p style={{ fontSize: "14px", color: "#a1a1aa", margin: 0, lineHeight: "1.6" }}>
             Progressive Web App (PWA) gives you an app-like experience directly in your browser. Access Waktu+ offline,
             get faster loading times, and install it on your home screen.
@@ -77,7 +77,7 @@ export default function PWAScreen() {
             border: "1px solid #3f3f46",
           }}
         >
-          <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", margin: "0 0 12px 0", fontFamily: '"Satoshi", system-ui, sans-serif' }}>How to Install</h2>
+          <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", margin: "0 0 12px 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>How to Install</h2>
 
           {/* Android instructions */}
           <div style={{ marginBottom: "16px" }}>
@@ -112,7 +112,7 @@ export default function PWAScreen() {
             border: "1px solid #3f3f46",
           }}
         >
-          <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", margin: "0 0 12px 0", fontFamily: '"Satoshi", system-ui, sans-serif' }}>Benefits</h2>
+          <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", margin: "0 0 12px 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>Benefits</h2>
           <ul style={{ fontSize: "14px", color: "#a1a1aa", margin: "0", paddingLeft: "16px", lineHeight: "1.8" }}>
             <li>⚡ Faster loading times with offline support</li>
             <li>🔔 Push notifications for prayer times</li>
@@ -131,7 +131,7 @@ export default function PWAScreen() {
             border: "1px solid #3f3f46",
           }}
         >
-          <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", margin: "0 0 12px 0", fontFamily: '"Satoshi", system-ui, sans-serif' }}>Troubleshooting</h2>
+          <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", margin: "0 0 12px 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>Troubleshooting</h2>
           <div style={{ marginBottom: "12px" }}>
             <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#f59e0b", margin: "0 0 6px 0" }}>
               Don't see "Install app"?

@@ -20,8 +20,10 @@ yarn-error.log*
 # env files
 .env*
 
-# vercel
+# cloudflare / opennext
 .vercel
+.open-next
+.wrangler
 
 # typescript
 *.tsbuildinfo

@@ -1006,7 +1006,7 @@ export function DisplayClient() {
             textAlign: "center",
             lineHeight: 1.2,
             wordBreak: "break-word",
-            fontFamily: '"Satoshi", system-ui, sans-serif',
+            fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
           }}
         >
           {alertText}
@@ -1055,7 +1055,7 @@ export function DisplayClient() {
             style={{
               color: "#ffffff",
               fontSize: "14px",
-              fontFamily: '"Inter", system-ui, sans-serif',
+              fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
             }}
           >
             {t.azanBannerText}
@@ -1075,7 +1075,7 @@ export function DisplayClient() {
               fontSize: "13px",
               fontWeight: 600,
               cursor: "pointer",
-              fontFamily: '"Inter", system-ui, sans-serif',
+              fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
               whiteSpace: "nowrap",
             }}
           >
@@ -1095,7 +1095,7 @@ export function DisplayClient() {
               fontSize: "13px",
               fontWeight: 500,
               cursor: "pointer",
-              fontFamily: '"Inter", system-ui, sans-serif',
+              fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
               whiteSpace: "nowrap",
             }}
           >
@@ -1128,7 +1128,7 @@ export function DisplayClient() {
             display: "flex",
             flexDirection: "column",
             boxSizing: "border-box",
-            fontFamily: '"Satoshi", system-ui, sans-serif',
+            fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
           }}
         >
       {showHeader && (
@@ -1142,18 +1142,18 @@ export function DisplayClient() {
           }}
         >
           <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "8px" }}>
-            <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
+            <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
               {formatGregorianDate(language)}
             </p>
-            <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
+            <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
               {hijriDate}
             </p>
           </div>
           <div style={{ textAlign: "right" }}>
-            <h1 style={{ fontSize: "68px", fontWeight: 700, color: themeColorMap[themeColor].primary, fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }}>
+            <h1 style={{ fontSize: "68px", fontWeight: 700, color: themeColorMap[themeColor].primary, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', lineHeight: 1.2 }}>
               {customTitle || "Waktu+"}
             </h1>
-            <p style={{ fontSize: "68px", fontWeight: 600, color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
+            <p style={{ fontSize: "68px", fontWeight: 600, color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
               {formatTimeDisplay(currentTime, timeFormat)}
             </p>
           </div>
@@ -1236,12 +1236,12 @@ export function DisplayClient() {
                 <span
                   style={{
                     fontSize: hasAlert ? "clamp(14px, 2vw, 22px)" : "clamp(18px, 2.5vw, 28px)",
-                    fontWeight: 500,
+                    fontWeight: 600,
                     color: "rgba(255,255,255,0.9)",
                     whiteSpace: "nowrap",
                     flexShrink: 0,
                     lineHeight: 1,
-                    fontFamily: '"Satoshi", system-ui, sans-serif',
+                    fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                   }}
                 >
                   {isSyuruk ? t.sunriseIn : t.begins}
@@ -1249,13 +1249,13 @@ export function DisplayClient() {
                 <span
                   style={{
                     fontSize: hasAlert ? "clamp(14px, 2vw, 22px)" : "clamp(18px, 2.5vw, 28px)",
-                    fontWeight: 500,
+                    fontWeight: 600,
                     color: "rgba(255,255,255,0.9)",
                     whiteSpace: "nowrap",
                     textAlign: "center",
                     flexShrink: 0,
                     lineHeight: 1,
-                    fontFamily: '"Satoshi", system-ui, sans-serif',
+                    fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                   }}
                 >
                   {countdown}
@@ -1283,16 +1283,16 @@ export function DisplayClient() {
         >
           {showZone && zoneInfo && (
             <p style={{ margin: 0 }}>
-              <span>{t.zone}: {zoneInfo.name}</span>
+              <span style={{ fontWeight: 600 }}>{t.zone}: {zoneInfo.name}</span>
             </p>
           )}
           {!showHeader && (
-            <p style={{ margin: 0 }}>
+            <p style={{ margin: 0, fontWeight: 600 }}>
               <span suppressHydrationWarning>{formatGregorianDate(language)}</span>
-              <span> · </span>
+              <span style={{ fontWeight: 600 }}> · </span>
               <span suppressHydrationWarning>{hijriDate}</span>
-              <span> · </span>
-              <span style={{ display: "inline-block", minWidth: timeFormat === "12h" ? "7.5em" : "5.5em", textAlign: "left" }} suppressHydrationWarning>
+              <span style={{ fontWeight: 600 }}> · </span>
+              <span style={{ display: "inline-block", minWidth: timeFormat === "12h" ? "7.5em" : "5.5em", textAlign: "left", fontWeight: 600 }} suppressHydrationWarning>
                 {formatTimeDisplay(currentTime, timeFormat)}
               </span>
             </p>
@@ -1380,12 +1380,12 @@ export function DisplayClient() {
               maxHeight: "90vh",
               overflowY: "auto",
               position: "relative",
-              fontFamily: '"Satoshi", system-ui, sans-serif',
+              fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
               height: viewportWidth >= 768 ? "auto" : "auto",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ fontSize: "24px", fontWeight: 600, color: "#ffffff", marginBottom: "24px", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.settings}</h2>
+            <h2 style={{ fontSize: "24px", fontWeight: 600, color: "#ffffff", marginBottom: "24px", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.settings}</h2>
 
             <div
               style={{
@@ -1402,8 +1402,8 @@ export function DisplayClient() {
                 {/* Display Identity */}
                 <div>
                   <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.sectionDisplayIdentity}</h3>
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif' }}>{t.sectionDisplayIdentityDesc}</p>
+                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionDisplayIdentity}</h3>
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionDisplayIdentityDesc}</p>
                   </div>
 
                   <div style={{ marginBottom: "16px" }}>
@@ -1426,7 +1426,7 @@ export function DisplayClient() {
                         fontSize: "14px",
                         outline: "none",
                         boxSizing: "border-box",
-                        fontFamily: '"Satoshi", system-ui, sans-serif',
+                        fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                       }}
                     />
                   </div>
@@ -1470,7 +1470,7 @@ export function DisplayClient() {
                         borderRadius: "8px",
                       }}
                     >
-                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
                         {t.showHeader}
                       </span>
                       <Switch
@@ -1488,7 +1488,7 @@ export function DisplayClient() {
                         borderRadius: "8px",
                       }}
                     >
-                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
                         {t.showZone}
                       </span>
                       <Switch
@@ -1507,10 +1507,10 @@ export function DisplayClient() {
                       }}
                     >
                       <div>
-                        <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif', display: "block" }}>
+                        <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', display: "block" }}>
                           {t.autoRefresh}
                         </span>
-                        <span style={{ fontSize: "11px", color: "#71717a", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                        <span style={{ fontSize: "11px", color: "#71717a", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
                           {t.autoRefreshDescription}
                         </span>
                       </div>
@@ -1538,7 +1538,7 @@ export function DisplayClient() {
                           fontSize: "14px",
                           fontWeight: 500,
                           cursor: "pointer",
-                          fontFamily: '"Inter", system-ui, sans-serif',
+                          fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                         }}
                       >
                         {t.english}
@@ -1555,7 +1555,7 @@ export function DisplayClient() {
                           fontSize: "14px",
                           fontWeight: 500,
                           cursor: "pointer",
-                          fontFamily: '"Inter", system-ui, sans-serif',
+                          fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                         }}
                       >
                         {t.bahasaMelayu}
@@ -1567,8 +1567,8 @@ export function DisplayClient() {
                 {/* Location & Prayer Time */}
                 <div>
                   <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.sectionLocation}</h3>
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif' }}>{t.sectionLocationDesc}</p>
+                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionLocation}</h3>
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionLocationDesc}</p>
                   </div>
 
                   <div style={{ marginBottom: "12px" }}>
@@ -1604,7 +1604,7 @@ export function DisplayClient() {
                         border: "none",
                         cursor: isLocating ? "wait" : "pointer",
                         opacity: isLocating ? 0.7 : 1,
-                        fontFamily: '"Inter", system-ui, sans-serif',
+                        fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                       }}
                     >
                       {isLocating ? (language === "ms" ? "Mengesan..." : "Detecting...") : t.locateMe}
@@ -1620,12 +1620,12 @@ export function DisplayClient() {
                 {/* Alerts & Behaviour */}
                 <div>
                   <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.sectionAlerts}</h3>
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif' }}>{t.sectionAlertsDesc}</p>
+                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAlerts}</h3>
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAlertsDesc}</p>
                   </div>
 
                   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: 0, fontFamily: '"Inter", system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertBefore}</p>
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertBefore}</p>
                     <div
                       style={{
                         display: "flex",
@@ -1636,7 +1636,7 @@ export function DisplayClient() {
                         borderRadius: "8px",
                       }}
                     >
-                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
                         {t.testAzanCountdown} ({ALERT_DURATION_MINS.azan_countdown} {t.mins})
                       </span>
                       <Switch
@@ -1646,7 +1646,7 @@ export function DisplayClient() {
                       />
                     </div>
 
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAt}</p>
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAt}</p>
                     <div
                       style={{
                         display: "flex",
@@ -1657,7 +1657,7 @@ export function DisplayClient() {
                         borderRadius: "8px",
                       }}
                     >
-                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
                         {t.testAzanNow} ({ALERT_DURATION_MINS.azan_now} {t.mins})
                       </span>
                       <Switch
@@ -1667,7 +1667,7 @@ export function DisplayClient() {
                       />
                     </div>
 
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAfter}</p>
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAfter}</p>
                     {(["iqamah", "khutbah_countdown"] as AlertType[]).map((key) => {
                       const alertLabels: Record<AlertType, string> = {
                         azan_countdown: t.testAzanCountdown,
@@ -1687,7 +1687,7 @@ export function DisplayClient() {
                             borderRadius: "8px",
                           }}
                         >
-                          <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                          <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
                             {alertLabels[key]} ({ALERT_DURATION_MINS[key]} {t.mins})
                           </span>
                           <Switch
@@ -1727,11 +1727,11 @@ export function DisplayClient() {
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "center",
-                          fontFamily: '"Inter", system-ui, sans-serif',
+                          fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                           opacity: isAzanPlaying ? 0.6 : 1,
                         }}
                       >
-                        <span style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>{currentTestAlertLabel}</span>
+                        <span style={{ fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{currentTestAlertLabel}</span>
                         <ChevronDown
                           style={{
                             width: "16px",
@@ -1777,7 +1777,7 @@ export function DisplayClient() {
                                 fontSize: "14px",
                                 textAlign: "left",
                                 cursor: "pointer",
-                                fontFamily: '"Inter", system-ui, sans-serif',
+                                fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                               }}
                             >
                               {option.label}
@@ -1807,7 +1807,7 @@ export function DisplayClient() {
                         fontSize: "14px",
                         fontWeight: 500,
                         cursor: "pointer",
-                        fontFamily: '"Inter", system-ui, sans-serif',
+                        fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                       }}
                     >
                       {t.timeFormat12h}
@@ -1824,7 +1824,7 @@ export function DisplayClient() {
                         fontSize: "14px",
                         fontWeight: 500,
                         cursor: "pointer",
-                        fontFamily: '"Inter", system-ui, sans-serif',
+                        fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                       }}
                     >
                       {t.timeFormat24h}
@@ -1835,8 +1835,8 @@ export function DisplayClient() {
                 {/* Audio */}
                 <div>
                   <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.sectionAudio}</h3>
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: '"Inter", system-ui, sans-serif' }}>{t.sectionAudioDesc}</p>
+                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAudio}</h3>
+                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAudioDesc}</p>
                   </div>
 
                   <div
@@ -1850,7 +1850,7 @@ export function DisplayClient() {
                       marginBottom: "12px",
                     }}
                   >
-                    <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: '"Inter", system-ui, sans-serif' }}>
+                    <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
                       {t.azanSound}
                     </span>
                     <Switch
@@ -1880,7 +1880,7 @@ export function DisplayClient() {
                       fontSize: "14px",
                       fontWeight: 500,
                       cursor: isAzanPlaying ? "not-allowed" : "pointer",
-                      fontFamily: '"Inter", system-ui, sans-serif',
+                      fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                       transition: "background-color 0.15s ease",
                       opacity: isAzanPlaying ? 0.6 : 1,
                     }}
@@ -1906,7 +1906,7 @@ export function DisplayClient() {
                   fontWeight: 500,
                   cursor: hasSettingsChanged ? "pointer" : "not-allowed",
                   opacity: hasSettingsChanged ? 1 : 0.5,
-                  fontFamily: '"Inter", system-ui, sans-serif',
+                  fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                   transition: "background-color 0.15s ease, opacity 0.15s ease",
                 }}
               >

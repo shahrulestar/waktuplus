@@ -1,10 +1,16 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
 import Script from "next/script"
-import { Analytics } from "@vercel/analytics/next"
+import { Geist } from "next/font/google"
 import { AppProvider } from "@/lib/store"
 import { UpdateBanner } from "@/components/UpdateBanner"
 import "./globals.css"
+
+const geistSans = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: {
@@ -105,7 +111,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={geistSans.variable}>
       <head>
         <Script async src="https://www.googletagmanager.com/gtag/js?id=G-VGEYXEF9L0" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -120,14 +126,6 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap"
           rel="stylesheet"
         />
-        <link
-          href="https://api.fontshare.com/v2/css?f[]=satoshi@700,600&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap"
-          rel="stylesheet"
-        />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
         <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
@@ -137,7 +135,6 @@ export default function RootLayout({
       </head>
       <body
         style={{
-          fontFamily: '"Inter", system-ui, sans-serif',
           backgroundColor: "#18181b",
           color: "#ffffff",
           margin: 0,
@@ -147,7 +144,16 @@ export default function RootLayout({
       >
         <UpdateBanner />
         <AppProvider>{children}</AppProvider>
-        <Analytics />
+        {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
+          <Script
+            defer
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={JSON.stringify({
+              token: process.env.NEXT_PUBLIC_CF_BEACON_TOKEN,
+            })}
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   )

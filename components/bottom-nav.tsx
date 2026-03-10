@@ -61,7 +61,7 @@ export function BottomNav({ activeScreen }: BottomNavProps) {
             style={{ backgroundColor: "#18181b", borderColor: "#27272a", maxWidth: "560px", padding: 0, gap: 0 }}
           >
             <DialogHeader style={{ textAlign: "left", padding: "16px 16px 8px 16px" }}>
-              <DialogTitle style={{ color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.menu}</DialogTitle>
+              <DialogTitle style={{ color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.menu}</DialogTitle>
               <DialogDescription style={{ color: "#71717a" }}>
                 {language === "ms" ? "Terokai ciri-ciri Waktu+" : "Explore Waktu+ features"}
               </DialogDescription>
@@ -119,7 +119,7 @@ export function BottomNav({ activeScreen }: BottomNavProps) {
         <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
           <DrawerContent style={{ backgroundColor: "#18181b", borderColor: "#27272a" }}>
             <DrawerHeader style={{ textAlign: "left" }}>
-              <DrawerTitle style={{ color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.menu}</DrawerTitle>
+              <DrawerTitle style={{ color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.menu}</DrawerTitle>
               <DrawerDescription style={{ color: "#71717a" }}>
                 {language === "ms" ? "Terokai ciri-ciri Waktu+" : "Explore Waktu+ features"}
               </DrawerDescription>

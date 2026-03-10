@@ -332,7 +332,7 @@ export function HomeScreen() {
                     marginTop: "8px",
                     color: "#ffffff",
                     lineHeight: 1,
-                    fontFamily: '"Satoshi", system-ui, sans-serif',
+                    fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                   }}
                 >
                   {azanPrayer.name}
@@ -341,7 +341,7 @@ export function HomeScreen() {
             ) : (
               <>
                 <p style={{ fontSize: "14px", color: "#ffffff", fontWeight: 500 }}>{getCountdownText()}</p>
-                <h1 style={{ fontSize: "48px", fontWeight: 700, marginTop: "8px", color: "#ffffff", lineHeight: 1, fontFamily: '"Satoshi", system-ui, sans-serif' }}>
+                <h1 style={{ fontSize: "48px", fontWeight: 700, marginTop: "8px", color: "#ffffff", lineHeight: 1, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
                   {currentTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                 </h1>
               </>

@@ -117,7 +117,7 @@ export function PrayerTimesClientPage() {
           <span style={{ fontSize: "14px", fontWeight: 500 }}>{t.back}</span>
         </Link>
 
-        <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px", color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.prayerTimes}</h1>
+        <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.prayerTimes}</h1>
 
         {/* Zone Dropdown */}
         <div style={{ marginBottom: "16px" }}>

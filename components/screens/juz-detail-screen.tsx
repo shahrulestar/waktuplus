@@ -161,7 +161,7 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
 
       {/* Juz Header - Blue card */}
       <div style={{ backgroundColor: "#2563eb", padding: "16px", margin: "0 16px", borderRadius: "8px" }}>
-        <h1 style={{ fontSize: "16px", fontWeight: 700, color: "#ffffff", margin: 0, fontFamily: '"Satoshi", system-ui, sans-serif' }}>
+        <h1 style={{ fontSize: "16px", fontWeight: 700, color: "#ffffff", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
           {t.juz} {juzNumber}
         </h1>
         <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.8)", margin: "4px 0 0 0" }}>

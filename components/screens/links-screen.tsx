@@ -62,7 +62,7 @@ export function LinksScreen() {
       }}
     >
       <div style={{ maxWidth: "448px", width: "100%", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#ffffff", margin: "0 0 8px 0", textAlign: "center", fontFamily: '"Satoshi", system-ui, sans-serif' }}>
+        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#ffffff", margin: "0 0 8px 0", textAlign: "center", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
           Waktu+
         </h1>
         <p style={{ fontSize: "14px", color: "#a1a1aa", margin: "0 0 24px 0", textAlign: "center" }}>
@@ -111,7 +111,7 @@ export function LinksScreen() {
                   <IconComponent style={{ width: "24px", height: "24px", color: "#ffffff" }} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", margin: "0 0 4px 0", fontFamily: '"Satoshi", system-ui, sans-serif' }}>
+                  <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", margin: "0 0 4px 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
                     {link.label}
                   </h2>
                   <p style={{ fontSize: "14px", color: "#a1a1aa", margin: 0 }}>{link.description}</p>
