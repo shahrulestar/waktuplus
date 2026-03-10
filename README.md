@@ -33,6 +33,8 @@ pnpm install
 pnpm run deploy
 ```
 
+If your Cloudflare build pipeline runs `pnpm run build`, it is now OpenNext-compatible and generates `.open-next/*` before deploy.
+
 Or build and preview locally:
 
 ```bash

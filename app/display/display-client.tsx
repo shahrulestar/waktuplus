@@ -1283,14 +1283,14 @@ export function DisplayClient() {
         >
           {showZone && zoneInfo && (
             <p style={{ margin: 0 }}>
-              <span style={{ fontWeight: 600 }}>{t.zone}: {zoneInfo.name}</span>
+              <span style={{ fontWeight: 600, color: "#ffffff" }}>{t.zone}: {zoneInfo.name}</span>
             </p>
           )}
           {!showHeader && (
-            <p style={{ margin: 0, fontWeight: 600 }}>
-              <span suppressHydrationWarning>{formatGregorianDate(language)}</span>
+            <p style={{ margin: 0, fontWeight: 600, color: "#ffffff" }}>
+              <span style={{ fontWeight: 600 }} suppressHydrationWarning>{formatGregorianDate(language)}</span>
               <span style={{ fontWeight: 600 }}> · </span>
-              <span suppressHydrationWarning>{hijriDate}</span>
+              <span style={{ fontWeight: 600 }} suppressHydrationWarning>{hijriDate}</span>
               <span style={{ fontWeight: 600 }}> · </span>
               <span style={{ display: "inline-block", minWidth: timeFormat === "12h" ? "7.5em" : "5.5em", textAlign: "left", fontWeight: 600 }} suppressHydrationWarning>
                 {formatTimeDisplay(currentTime, timeFormat)}
@@ -1731,7 +1731,7 @@ export function DisplayClient() {
                           opacity: isAzanPlaying ? 0.6 : 1,
                         }}
                       >
-                        <span style={{ fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{currentTestAlertLabel}</span>
+                        <span style={{ fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', fontWeight: 500 }}>{currentTestAlertLabel}</span>
                         <ChevronDown
                           style={{
                             width: "16px",
@@ -1778,6 +1778,7 @@ export function DisplayClient() {
                                 textAlign: "left",
                                 cursor: "pointer",
                                 fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+                                fontWeight: 400,
                               }}
                             >
                               {option.label}

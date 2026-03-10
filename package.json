@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "node update-version.js && next build",
+    "build": "node update-version.js && opennextjs-cloudflare build",
+    "build:next": "node update-version.js && next build",
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "preview": "pnpm run build && opennextjs-cloudflare preview",
+    "deploy": "pnpm run build && opennextjs-cloudflare deploy",
+    "upload": "pnpm run build && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
