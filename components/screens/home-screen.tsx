@@ -36,11 +36,11 @@ function formatHijriDate(hijriStr: string | undefined, language: "en" | "ms"): s
   const day = Number.parseInt(parts[2], 10)
 
   const monthNamesMs = [
-    "Muh", "Saf", "RAb", "RAk", "JAw", "JAk", "Rej", "Sya", "Ram", "Syw", "Zul", "Zhj",
+    "Muharam", "Safar", "Rabiulawal", "Rabiulakhir", "Jamadilawal", "Jamadilakhir", "Rejab", "Syaaban", "Ramadan", "Syawal", "Zulkaedah", "Zulhijjah",
   ]
 
   const monthNamesEn = [
-    "Muh", "Saf", "Rab", "Rak", "Jul", "Jak", "Raj", "Sha", "Ram", "Shw", "Dha", "Dhj",
+    "Muharram", "Safar", "Rabi al-Awwal", "Rabi al-Thani", "Jumada al-Ula", "Jumada al-Akhirah", "Rajab", "Shaaban", "Ramadan", "Shawwal", "Dhu al-Qadah", "Dhu al-Hijjah",
   ]
 
   const monthNames = language === "ms" ? monthNamesMs : monthNamesEn

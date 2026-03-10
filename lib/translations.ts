@@ -168,7 +168,7 @@ export const translations = {
     home: "Utama",
     settings: "Tetapan",
     // Home screen
-    startsIn: "bermula dalam",
+    startsIn: "bermula",
     tomorrow: "Esok",
     loading: "Memuatkan...",
     prayerTime: "Waktu Solat",
