@@ -130,7 +130,7 @@ export function PrayerTimesClientPage() {
           <p style={{ fontSize: "14px", color: "#ffffff", marginBottom: "8px" }}>{t.selectMonth}</p>
           <div style={{ position: "relative" }}>
             <button
-              onClick={() => { setShowMonthDropdown(!showMonthDropdown); setShowZoneDropdown(false) }}
+              onClick={() => setShowMonthDropdown(!showMonthDropdown)}
               style={{
                 width: "100%",
                 display: "flex",

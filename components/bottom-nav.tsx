@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Home, BookOpen, Grid2X2, Settings, Clock, Calendar, Monitor, ChevronRight } from "lucide-react"
@@ -14,6 +14,7 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface BottomNavProps {
   activeScreen: string
@@ -24,6 +25,15 @@ export function BottomNav({ activeScreen }: BottomNavProps) {
   const t = translations[language]
   const router = useRouter()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 768px)")
+    const updateScreenSize = () => setIsDesktop(mediaQuery.matches)
+    updateScreenSize()
+    mediaQuery.addEventListener("change", updateScreenSize)
+    return () => mediaQuery.removeEventListener("change", updateScreenSize)
+  }, [])
 
   const navItems = [
     { id: "home", label: t.home, icon: Home, href: "/" },
@@ -44,69 +54,132 @@ export function BottomNav({ activeScreen }: BottomNavProps) {
 
   return (
     <>
-      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent style={{ backgroundColor: "#18181b", borderColor: "#27272a" }}>
-          <DrawerHeader style={{ textAlign: "left" }}>
-            <DrawerTitle style={{ color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.menu}</DrawerTitle>
-            <DrawerDescription style={{ color: "#71717a" }}>
-              {language === "ms" ? "Terokai ciri-ciri Waktu+" : "Explore Waktu+ features"}
-            </DrawerDescription>
-          </DrawerHeader>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              padding: "0 16px calc(16px + env(safe-area-inset-bottom, 0px))",
-            }}
+      {isDesktop ? (
+        <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <DialogContent
+            showCloseButton={false}
+            style={{ backgroundColor: "#18181b", borderColor: "#27272a", maxWidth: "560px", padding: 0, gap: 0 }}
           >
-            {menuItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <DrawerClose key={item.label} asChild>
-                  <button
-                    onClick={() => {
-                      setDrawerOpen(false)
-                      router.push(item.href)
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      padding: "14px 0px",
-                      backgroundColor: "transparent",
-                      border: "none",
-                      borderBottom: "none",
-                      cursor: "pointer",
-                      textAlign: "left",
-                      width: "100%",
-                    }}
-                  >
-                    <div
+            <DialogHeader style={{ textAlign: "left", padding: "16px 16px 8px 16px" }}>
+              <DialogTitle style={{ color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.menu}</DialogTitle>
+              <DialogDescription style={{ color: "#71717a" }}>
+                {language === "ms" ? "Terokai ciri-ciri Waktu+" : "Explore Waktu+ features"}
+              </DialogDescription>
+            </DialogHeader>
+            <div style={{ display: "flex", flexDirection: "column", padding: "0 16px 16px 16px" }}>
+              {menuItems.map((item) => {
+                const Icon = item.icon
+                return (
+                  <DialogClose key={item.label} asChild>
+                    <button
+                      onClick={() => {
+                        setDrawerOpen(false)
+                        router.push(item.href)
+                      }}
                       style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "10px",
-                        backgroundColor: "#27272a",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
+                        gap: "12px",
+                        padding: "14px 0px",
+                        backgroundColor: "transparent",
+                        border: "none",
+                        borderBottom: "none",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        width: "100%",
                       }}
                     >
-                      <Icon style={{ width: "20px", height: "20px", color: "#3b82f6" }} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: "14px", fontWeight: 500, color: "#ffffff", margin: 0 }}>{item.label}</p>
-                      <p style={{ fontSize: "12px", color: "#71717a", margin: "2px 0 0 0" }}>{item.description}</p>
-                    </div>
-                    <ChevronRight style={{ width: "16px", height: "16px", color: "#71717a", flexShrink: 0 }} />
-                  </button>
-                </DrawerClose>
-              )
-            })}
-          </div>
-        </DrawerContent>
-      </Drawer>
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "10px",
+                          backgroundColor: "#27272a",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Icon style={{ width: "20px", height: "20px", color: "#3b82f6" }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: "14px", fontWeight: 500, color: "#ffffff", margin: 0 }}>{item.label}</p>
+                        <p style={{ fontSize: "12px", color: "#71717a", margin: "2px 0 0 0" }}>{item.description}</p>
+                      </div>
+                      <ChevronRight style={{ width: "16px", height: "16px", color: "#71717a", flexShrink: 0 }} />
+                    </button>
+                  </DialogClose>
+                )
+              })}
+            </div>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <DrawerContent style={{ backgroundColor: "#18181b", borderColor: "#27272a" }}>
+            <DrawerHeader style={{ textAlign: "left" }}>
+              <DrawerTitle style={{ color: "#ffffff", fontFamily: '"Satoshi", system-ui, sans-serif' }}>{t.menu}</DrawerTitle>
+              <DrawerDescription style={{ color: "#71717a" }}>
+                {language === "ms" ? "Terokai ciri-ciri Waktu+" : "Explore Waktu+ features"}
+              </DrawerDescription>
+            </DrawerHeader>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                padding: "0 16px calc(16px + env(safe-area-inset-bottom, 0px))",
+              }}
+            >
+              {menuItems.map((item) => {
+                const Icon = item.icon
+                return (
+                  <DrawerClose key={item.label} asChild>
+                    <button
+                      onClick={() => {
+                        setDrawerOpen(false)
+                        router.push(item.href)
+                      }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        padding: "14px 0px",
+                        backgroundColor: "transparent",
+                        border: "none",
+                        borderBottom: "none",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        width: "100%",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "10px",
+                          backgroundColor: "#27272a",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Icon style={{ width: "20px", height: "20px", color: "#3b82f6" }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: "14px", fontWeight: 500, color: "#ffffff", margin: 0 }}>{item.label}</p>
+                        <p style={{ fontSize: "12px", color: "#71717a", margin: "2px 0 0 0" }}>{item.description}</p>
+                      </div>
+                      <ChevronRight style={{ width: "16px", height: "16px", color: "#71717a", flexShrink: 0 }} />
+                    </button>
+                  </DrawerClose>
+                )
+              })}
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
 
       <nav
         style={{

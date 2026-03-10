@@ -16,7 +16,7 @@ export const translations = {
     subuh: "Fajr",
     syuruk: "Sunrise",
     zohor: "Dhuhr",
-    asar: "Asr",
+    asar: "Asar",
     maghrib: "Maghrib",
     isyak: "Isha",
     jumaah: "Jumaah",
