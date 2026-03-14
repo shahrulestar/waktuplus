@@ -117,7 +117,7 @@ export function PrayerTimesClientPage() {
           <span style={{ fontSize: "14px", fontWeight: 500 }}>{t.back}</span>
         </Link>
 
-        <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.prayerTimes}</h1>
+        <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px", color: "#ffffff" }}>{t.prayerTimes}</h1>
 
         {/* Zone Dropdown */}
         <div style={{ marginBottom: "16px" }}>
@@ -264,12 +264,12 @@ export function PrayerTimesClientPage() {
                       >
                         {prayer.day}
                       </td>
-                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}>{prayer.imsak}</td>
-                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}>{prayer.fajr}</td>
-                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}>{prayer.syuruk}</td>
-                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}>{prayer.dhuhr}</td>
-                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}>{prayer.asr}</td>
-                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}>{prayer.maghrib}</td>
+                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}><span className="metric-number">{prayer.imsak}</span></td>
+                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}><span className="metric-number">{prayer.fajr}</span></td>
+                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}><span className="metric-number">{prayer.syuruk}</span></td>
+                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}><span className="metric-number">{prayer.dhuhr}</span></td>
+                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}><span className="metric-number">{prayer.asr}</span></td>
+                      <td style={{ padding: "8px 4px", textAlign: "center", color: "#ffffff" }}><span className="metric-number">{prayer.maghrib}</span></td>
                       <td
                         style={{
                           padding: "8px 4px",
@@ -278,7 +278,7 @@ export function PrayerTimesClientPage() {
                           ...(isToday && { borderRadius: "0 4px 4px 0" }),
                         }}
                       >
-                        {prayer.isha}
+                        <span className="metric-number">{prayer.isha}</span>
                       </td>
                     </tr>
                   )

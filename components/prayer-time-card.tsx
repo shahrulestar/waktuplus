@@ -193,7 +193,7 @@ export function PrayerTimeCard({ prayerTime, prayerTimes, zoneName, isLoading, l
       onMouseLeave={hasMultipleDays ? handleMouseLeave : undefined}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-        <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.prayerTime}</h2>
+        <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#ffffff" }}>{t.prayerTime}</h2>
         <span style={{ fontSize: "14px", color: currentDayIndex === 0 ? "#a1a1aa" : brandColor, fontWeight: currentDayIndex === 0 ? 400 : 500, transition: "color 0.2s" }}>{dateLabel}</span>
       </div>
       <p style={{ fontSize: "14px", color: "#a1a1aa", marginBottom: "16px" }}>{zoneName}</p>
@@ -209,7 +209,7 @@ export function PrayerTimeCard({ prayerTime, prayerTimes, zoneName, isLoading, l
             >
               <Icon style={{ width: "20px", height: "20px", color: isActive ? brandColor : "#ffffff" }} />
               <span style={{ fontSize: "14px", color: isActive ? brandColor : "#ffffff" }}>{prayer.name}</span>
-              <span style={{ fontSize: "14px", fontWeight: 500, color: isActive ? brandColor : "#ffffff" }}>
+              <span className="metric-number" style={{ fontSize: "14px", color: isActive ? brandColor : "#ffffff" }}>
                 {prayer.time}
               </span>
             </div>

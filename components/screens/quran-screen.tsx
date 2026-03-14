@@ -171,7 +171,7 @@ export function QuranScreen() {
 
   return (
     <div style={{ padding: "16px", backgroundColor: "#18181b", minHeight: "100%" }}>
-      <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.alQuran}</h1>
+      <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "16px", color: "#ffffff" }}>{t.alQuran}</h1>
 
       {/* Search */}
       <div style={{ position: "relative", marginBottom: "16px" }}>

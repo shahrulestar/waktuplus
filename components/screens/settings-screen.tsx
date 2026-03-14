@@ -97,11 +97,11 @@ export function SettingsScreen() {
 
   return (
     <div style={{ padding: "16px", backgroundColor: "#18181b", minHeight: "100%" }}>
-      <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "24px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.settings}</h1>
+      <h1 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "24px", color: "#ffffff" }}>{t.settings}</h1>
 
       {/* Prayer Zone */}
       <div style={{ marginBottom: "24px" }}>
-        <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "12px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.prayerZone}</h2>
+        <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "12px", color: "#ffffff" }}>{t.prayerZone}</h2>
         <ZoneSelector value={selectedZone} onChange={setSelectedZone} />
         <button
           onClick={handleLocateMe}
@@ -126,7 +126,7 @@ export function SettingsScreen() {
 
       {/* Language */}
       <div style={{ marginBottom: "24px" }}>
-        <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "12px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.language}</h2>
+        <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "12px", color: "#ffffff" }}>{t.language}</h2>
         <div style={{ display: "flex", gap: "8px" }}>
           <button
             onClick={() => setLanguage("en")}
@@ -145,7 +145,7 @@ export function SettingsScreen() {
 
       {/* About App */}
       <div style={{ marginBottom: "24px" }}>
-        <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "12px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.aboutApp}</h2>
+        <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "12px", color: "#ffffff" }}>{t.aboutApp}</h2>
         <div style={{ backgroundColor: "#27272a", borderRadius: "8px", padding: "16px" }}>
           <button
             onClick={() => window.open("https://instagram.com/waktuplus", "_blank")}

@@ -18,7 +18,7 @@ export default function NotFound() {
       }}
     >
       <div style={{ marginBottom: "32px" }}>
-        <h1 style={{ fontSize: "96px", fontWeight: 700, color: "#3b82f6", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>404</h1>
+        <h1 className="metric-number" style={{ fontSize: "96px", fontWeight: 700, color: "#3b82f6", margin: 0 }}>404</h1>
         <p style={{ fontSize: "20px", fontWeight: 600, color: "#ffffff", margin: "16px 0 8px 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>Page Not Found</p>
         <p style={{ fontSize: "16px", color: "#a1a1aa", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
           Sorry, the page you're looking for doesn't exist.

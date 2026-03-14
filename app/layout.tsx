@@ -1,14 +1,20 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
 import Script from "next/script"
-import { Geist } from "next/font/google"
+import { Inter, Inter_Tight } from "next/font/google"
 import { AppProvider } from "@/lib/store"
 import { UpdateBanner } from "@/components/UpdateBanner"
 import "./globals.css"
 
-const geistSans = Geist({
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-geist-sans",
+  display: "swap",
+})
+
+const interTight = Inter_Tight({
+  subsets: ["latin"],
+  variable: "--font-heading",
   display: "swap",
 })
 
@@ -111,7 +117,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={geistSans.variable}>
+    <html lang="en" className={`${inter.variable} ${interTight.variable}`}>
       <head>
         <Script async src="https://www.googletagmanager.com/gtag/js?id=G-VGEYXEF9L0" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -123,7 +129,7 @@ export default function RootLayout({
           `}
         </Script>
         <link
-          href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Alyamama:wght@300..900&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap"
           rel="stylesheet"
         />
         <link rel="icon" href="/favicon.ico" sizes="any" />

@@ -145,7 +145,7 @@ export function RamadanCountdown({ language }: IslamicEventCountdownProps) {
       }}
     >
       <p style={{ fontSize: "14px", color: "#ffffff", fontWeight: 500 }}>{celebrationName}</p>
-      <p style={{ fontSize: "14px", color: "#ffffff" }}>{countdownStr}</p>
+      <p className="metric-number" style={{ fontSize: "14px", color: "#ffffff" }}>{countdownStr}</p>
       <h3 style={{ fontSize: "16px", fontWeight: 600, marginTop: "4px", color: "#ffffff" }}>{hijriDate}</h3>
       <p style={{ fontSize: "14px", color: "#ffffff" }}>{gregorianDate}</p>
     </div>

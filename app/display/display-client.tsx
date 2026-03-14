@@ -1142,18 +1142,18 @@ export function DisplayClient() {
           }}
         >
           <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "8px" }}>
-            <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
+            <p className="metric-number" style={{ fontSize: "64px", color: "#ffffff", lineHeight: 1.2 }} suppressHydrationWarning>
               {formatGregorianDate(language)}
             </p>
-            <p style={{ fontSize: "64px", color: "#ffffff", fontWeight: 600, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
+            <p className="metric-number" style={{ fontSize: "64px", color: "#ffffff", lineHeight: 1.2 }} suppressHydrationWarning>
               {hijriDate}
             </p>
           </div>
           <div style={{ textAlign: "right" }}>
-            <h1 style={{ fontSize: "68px", fontWeight: 700, color: themeColorMap[themeColor].primary, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', lineHeight: 1.2 }}>
+            <h1 style={{ fontSize: "68px", fontWeight: 700, color: themeColorMap[themeColor].primary, lineHeight: 1.2 }}>
               {customTitle || "Waktu+"}
             </h1>
-            <p style={{ fontSize: "68px", fontWeight: 600, color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', lineHeight: 1.2 }} suppressHydrationWarning>
+            <p className="metric-number" style={{ fontSize: "68px", color: "#ffffff", lineHeight: 1.2 }} suppressHydrationWarning>
               {formatTimeDisplay(currentTime, timeFormat)}
             </p>
           </div>
@@ -1212,7 +1212,7 @@ export function DisplayClient() {
                   {prayerName}
                 </span>
               </div>
-              <span style={{ fontSize: timeSize, fontWeight: 600, color: "#ffffff", lineHeight: 1.2 }}>
+              <span className="metric-number" style={{ fontSize: timeSize, color: "#ffffff", lineHeight: 1.2 }}>
                 {formatPrayerTime(prayerTimes[index], timeFormat)}
               </span>
               <div
@@ -1247,15 +1247,14 @@ export function DisplayClient() {
                   {isSyuruk ? t.sunriseIn : t.begins}
                 </span>
                 <span
+                  className="metric-number"
                   style={{
                     fontSize: hasAlert ? "clamp(14px, 2vw, 22px)" : "clamp(18px, 2.5vw, 28px)",
-                    fontWeight: 600,
                     color: "rgba(255,255,255,0.9)",
                     whiteSpace: "nowrap",
                     textAlign: "center",
                     flexShrink: 0,
                     lineHeight: 1,
-                    fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                   }}
                 >
                   {countdown}
@@ -1292,7 +1291,7 @@ export function DisplayClient() {
               <span style={{ fontWeight: 600 }}> · </span>
               <span style={{ fontWeight: 600 }} suppressHydrationWarning>{hijriDate}</span>
               <span style={{ fontWeight: 600 }}> · </span>
-              <span style={{ display: "inline-block", minWidth: timeFormat === "12h" ? "7.5em" : "5.5em", textAlign: "left", fontWeight: 600 }} suppressHydrationWarning>
+              <span className="metric-number" style={{ display: "inline-block", minWidth: timeFormat === "12h" ? "7.5em" : "5.5em", textAlign: "left" }} suppressHydrationWarning>
                 {formatTimeDisplay(currentTime, timeFormat)}
               </span>
             </p>
@@ -1385,7 +1384,7 @@ export function DisplayClient() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ fontSize: "24px", fontWeight: 600, color: "#ffffff", marginBottom: "24px", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.settings}</h2>
+            <h2 style={{ fontSize: "24px", fontWeight: 600, color: "#ffffff", marginBottom: "24px" }}>{t.settings}</h2>
 
             <div
               style={{
@@ -1402,7 +1401,7 @@ export function DisplayClient() {
                 {/* Display Identity */}
                 <div>
                   <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionDisplayIdentity}</h3>
+                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0 }}>{t.sectionDisplayIdentity}</h3>
                     <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionDisplayIdentityDesc}</p>
                   </div>
 
@@ -1567,7 +1566,7 @@ export function DisplayClient() {
                 {/* Location & Prayer Time */}
                 <div>
                   <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionLocation}</h3>
+                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0 }}>{t.sectionLocation}</h3>
                     <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionLocationDesc}</p>
                   </div>
 
@@ -1620,7 +1619,7 @@ export function DisplayClient() {
                 {/* Alerts & Behaviour */}
                 <div>
                   <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAlerts}</h3>
+                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0 }}>{t.sectionAlerts}</h3>
                     <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAlertsDesc}</p>
                   </div>
 
@@ -1836,7 +1835,7 @@ export function DisplayClient() {
                 {/* Audio */}
                 <div>
                   <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAudio}</h3>
+                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0 }}>{t.sectionAudio}</h3>
                     <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAudioDesc}</p>
                   </div>
 

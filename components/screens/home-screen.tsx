@@ -325,23 +325,14 @@ export function HomeScreen() {
             {isAzanTime && azanPrayer ? (
               <>
                 <p style={{ fontSize: "14px", color: "#ffffff", fontWeight: 500 }}>{t.nowAzan}</p>
-                <h1
-                  style={{
-                    fontSize: "32px",
-                    fontWeight: 700,
-                    marginTop: "8px",
-                    color: "#ffffff",
-                    lineHeight: 1,
-                    fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-                  }}
-                >
+                <h1 style={{ fontSize: "32px", fontWeight: 700, marginTop: "8px", color: "#ffffff", lineHeight: 1 }}>
                   {azanPrayer.name}
                 </h1>
               </>
             ) : (
               <>
                 <p style={{ fontSize: "14px", color: "#ffffff", fontWeight: 500 }}>{getCountdownText()}</p>
-                <h1 style={{ fontSize: "48px", fontWeight: 700, marginTop: "8px", color: "#ffffff", lineHeight: 1, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
+                <h1 className="metric-number" style={{ fontSize: "48px", marginTop: "8px", color: "#ffffff", lineHeight: 1 }}>
                   {currentTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                 </h1>
               </>

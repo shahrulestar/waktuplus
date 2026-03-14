@@ -134,12 +134,12 @@
   }
 
   h1, h2, h3 {
-    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    font-family: var(--font-heading), system-ui, sans-serif;
     font-weight: 700;
   }
 
   h4, h5, h6 {
-    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    font-family: var(--font-heading), system-ui, sans-serif;
     font-weight: 600;
   }
 
@@ -158,8 +158,22 @@
 }
 
 .font-arabic {
-  font-family: "Amiri", "Scheherazade New", "Traditional Arabic", serif;
+  font-family: "Alyamama", "Noto Naskh Arabic", "Traditional Arabic", serif;
   line-height: 2;
+  letter-spacing: 0;
+  font-optical-sizing: auto;
+  font-feature-settings: "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+}
+
+.metric-number {
+  font-family: var(--font-heading), system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.font-heading {
+  font-family: var(--font-heading), system-ui, sans-serif;
 }
 
 .placeholder-inter input,
