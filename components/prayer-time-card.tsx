@@ -42,6 +42,23 @@ function formatDateLabel(dateStr: string | undefined, dayOffset: number): string
   return `${dd}/${mm}/${yyyy}`
 }
 
+function getLocalDateString(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
+}
+
+function parseTimeToMinutes(time: string): number | null {
+  if (!time || time === "--:--" || !time.includes(":")) return null
+  const parts = time.split(":")
+  if (parts.length < 2) return null
+  const h = Number.parseInt(parts[0], 10)
+  const m = Number.parseInt(parts[1], 10)
+  if (Number.isNaN(h) || Number.isNaN(m)) return null
+  return h * 60 + m
+}
+
 export function PrayerTimeCard({ prayerTime, prayerTimes, zoneName, isLoading, language, isFriday = false }: PrayerTimeCardProps) {
   const t = translations[language]
 
@@ -79,29 +96,31 @@ export function PrayerTimeCard({ prayerTime, prayerTimes, zoneName, isLoading, l
     { name: t.isyak, time: currentPrayer?.isha || "--:--", icon: Moon },
   ]
 
-  // Only highlight next prayer for today (index 0)
+  // Only highlight next prayer for the actual local "today"
   const now = new Date()
+  const todayDateString = getLocalDateString(now)
+  const selectedDateString = days[currentDayIndex]?.date
   const currentMinutes = now.getHours() * 60 + now.getMinutes()
+  const isTodayView = currentDayIndex === 0 && (!selectedDateString || selectedDateString === todayDateString)
 
   let activeIndex = -1
-  if (currentDayIndex === 0) {
+  if (isTodayView) {
+    const prayerMinutes = prayers.map((prayer) => parseTimeToMinutes(prayer.time))
     for (let i = 0; i < prayers.length; i++) {
-      const time = prayers[i].time
-      if (time && time !== "--:--" && typeof time === "string" && time.includes(":")) {
-        const parts = time.split(":")
-        if (parts.length >= 2) {
-          const h = Number.parseInt(parts[0], 10)
-          const m = Number.parseInt(parts[1], 10)
-          if (!isNaN(h) && !isNaN(m) && currentMinutes < h * 60 + m) {
-            activeIndex = i
-            break
-          }
-        }
+      const minutes = prayerMinutes[i]
+      if (minutes !== null && currentMinutes < minutes) {
+        activeIndex = i
+        break
       }
+    }
+
+    // After the last prayer, the next one is tomorrow's Fajr.
+    if (activeIndex === -1) {
+      activeIndex = prayerMinutes.findIndex((minutes) => minutes !== null)
     }
   }
 
-  const brandColor = "#3B82F6"
+  const brandColor = "#3b82f6" // Tailwind blue-500
 
   // Navigate to a specific day
   const goToDay = useCallback((index: number) => {
