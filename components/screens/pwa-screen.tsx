@@ -9,9 +9,6 @@ export default function PWAScreen() {
   const { language } = useAppStore()
   const t = translations[language]
 
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-  const isAndroid = /Android/.test(navigator.userAgent)
-
   return (
     <main
       style={{

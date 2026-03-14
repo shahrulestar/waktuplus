@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation"
 import { JuzDetailScreen } from "@/components/screens/juz-detail-screen"
 import { BottomNav } from "@/components/bottom-nav"
 import type { Metadata } from "next"
@@ -29,6 +30,9 @@ export async function generateMetadata({ params }: JuzPageProps): Promise<Metada
 export default async function JuzPage({ params }: JuzPageProps) {
   const { number } = await params
   const juzNumber = Number.parseInt(number, 10)
+  if (Number.isNaN(juzNumber) || juzNumber < 1 || juzNumber > 30) {
+    notFound()
+  }
 
   return (
     <div

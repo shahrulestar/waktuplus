@@ -49,9 +49,16 @@ function formatHijriDate(hijriStr: string | undefined, language: "en" | "ms"): s
   return `${day} ${monthName} ${year}H`
 }
 
-function formatGregorianDate(language: "en" | "ms"): string {
+function getLocalDateString(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
+}
+
+function formatGregorianDate(language: "en" | "ms", d: Date): string {
   const locale = language === "ms" ? "ms-MY" : "en-GB"
-  return new Date().toLocaleDateString(locale, {
+  return d.toLocaleDateString(locale, {
     weekday: "long",
     day: "numeric",
     month: "short",
@@ -111,10 +118,11 @@ export function HomeScreen() {
         )
         
         if (data.prayers && Array.isArray(data.prayers) && data.prayers.length > 0) {
-          const todayDate = new Date().toISOString().split("T")[0]
+          const now = new Date()
+          const todayDate = getLocalDateString(now)
           let todayIdx = data.prayers.findIndex((p: PrayerData) => p.date === todayDate)
           if (todayIdx < 0) {
-            todayIdx = new Date().getDate() - 1
+            todayIdx = now.getDate() - 1
           }
           const prayer = data.prayers[todayIdx] || data.prayers[0]
           if (prayer) {
@@ -332,13 +340,13 @@ export function HomeScreen() {
             ) : (
               <>
                 <p style={{ fontSize: "14px", color: "#ffffff", fontWeight: 500 }}>{getCountdownText()}</p>
-                <h1 className="metric-number" style={{ fontSize: "48px", marginTop: "8px", color: "#ffffff", lineHeight: 1 }}>
+                <h1 className="metric-number" style={{ fontSize: "48px", marginTop: "8px", color: "#ffffff", lineHeight: 1 }} suppressHydrationWarning>
                   {currentTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                 </h1>
               </>
             )}
-            <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.8)", marginTop: "4px" }}>
-              {formatGregorianDate(language)}
+            <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.8)", marginTop: "4px" }} suppressHydrationWarning>
+              {formatGregorianDate(language, currentTime)}
             </p>
             <p style={{ fontSize: "14px", color: "#ffffff" }}>{hijriDate}</p>
           </div>

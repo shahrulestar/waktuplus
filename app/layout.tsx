@@ -117,7 +117,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${interTight.variable}`}>
+    <html lang="en" className={`${inter.variable} ${interTight.variable}`} suppressHydrationWarning>
       <head>
         <Script async src="https://www.googletagmanager.com/gtag/js?id=G-VGEYXEF9L0" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -140,6 +140,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body
+        suppressHydrationWarning
         style={{
           backgroundColor: "#18181b",
           color: "#ffffff",

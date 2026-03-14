@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation"
 import { SurahDetailScreen } from "@/components/screens/surah-detail-screen"
 import { BottomNav } from "@/components/bottom-nav"
 import type { Metadata } from "next"
@@ -29,6 +30,9 @@ export async function generateMetadata({ params }: SurahPageProps): Promise<Meta
 export default async function SurahPage({ params }: SurahPageProps) {
   const { number } = await params
   const surahNumber = Number.parseInt(number, 10)
+  if (Number.isNaN(surahNumber) || surahNumber < 1 || surahNumber > 114) {
+    notFound()
+  }
 
   return (
     <div

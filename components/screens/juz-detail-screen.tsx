@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useAppStore } from "@/lib/store"
@@ -35,56 +35,87 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [page, setPage] = useState(1)
   const topRef = useRef<HTMLDivElement>(null)
+  const requestIdRef = useRef(0)
 
   useEffect(() => {
+    setPage(1)
+    setAyahs([])
+    setTranslation([])
+    setTransliteration([])
+    setIsLoading(true)
+
+    const currentRequestId = ++requestIdRef.current
+
     const fetchJuz = async () => {
-      setIsLoading(true)
-      try {
-        const translationEdition = quranTranslationLang === "ms" ? "ms.basmeih" : "en.asad"
+      const translationEdition = quranTranslationLang === "ms" ? "ms.basmeih" : "en.asad"
 
-        const arabicPromise = getCachedData(
-          `juz_arabic_${juzNumber}`,
-          async () => {
-            const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/quran-uthmani`)
-            if (!res.ok) throw new Error("Failed to fetch")
-            return res.json()
-          },
-          7 * 24 * 60 * 60 * 1000,
-        )
-        const translationPromise = showQuranTranslation
-          ? getCachedData(
-              `juz_${juzNumber}_${translationEdition}`,
-              async () => {
-                const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/${translationEdition}`)
-                if (!res.ok) throw new Error("Failed to fetch")
-                return res.json()
-              },
-              7 * 24 * 60 * 60 * 1000,
-            )
-          : Promise.resolve({ data: { ayahs: [] } })
-        const translitPromise = getCachedData(
-          `juz_${juzNumber}_transliteration`,
-          async () => {
-            const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/en.transliteration`)
-            if (!res.ok) throw new Error("Failed to fetch")
-            return res.json()
-          },
-          7 * 24 * 60 * 60 * 1000,
-        )
+      const arabicPromise = getCachedData(
+        `juz_arabic_${juzNumber}`,
+        async () => {
+          const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/quran-uthmani`)
+          if (!res.ok) throw new Error("Failed to fetch")
+          return res.json()
+        },
+        7 * 24 * 60 * 60 * 1000,
+      )
+      const translationPromise = showQuranTranslation
+        ? getCachedData(
+            `juz_${juzNumber}_${translationEdition}`,
+            async () => {
+              const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/${translationEdition}`)
+              if (!res.ok) throw new Error("Failed to fetch")
+              return res.json()
+            },
+            7 * 24 * 60 * 60 * 1000,
+          )
+        : Promise.resolve({ data: { ayahs: [] } })
+      const translitPromise = getCachedData(
+        `juz_${juzNumber}_transliteration`,
+        async () => {
+          const res = await fetch(`/api/quran?endpoint=juz/${juzNumber}/en.transliteration`)
+          if (!res.ok) throw new Error("Failed to fetch")
+          return res.json()
+        },
+        7 * 24 * 60 * 60 * 1000,
+      )
 
-        const [arabicData, translationData, translitData] = await Promise.all([arabicPromise, translationPromise, translitPromise])
+      const results = await Promise.allSettled([arabicPromise, translationPromise, translitPromise])
 
-        setAyahs(arabicData?.data?.ayahs || [])
-        setTranslation(translationData?.data?.ayahs || [])
-        setTransliteration(translitData?.data?.ayahs || [])
-      } catch (error) {
-        console.error("Failed to fetch juz:", error)
-      } finally {
-        setIsLoading(false)
+      if (currentRequestId !== requestIdRef.current) return
+
+      const arabicResult = results[0]
+      const translationResult = results[1]
+      const translitResult = results[2]
+
+      if (arabicResult.status === "fulfilled" && arabicResult.value?.data?.ayahs) {
+        setAyahs(arabicResult.value.data.ayahs)
+      } else {
+        setAyahs([])
       }
+      if (translationResult.status === "fulfilled" && translationResult.value?.data?.ayahs) {
+        setTranslation(translationResult.value.data.ayahs)
+      } else {
+        setTranslation([])
+      }
+      if (translitResult.status === "fulfilled" && translitResult.value?.data?.ayahs) {
+        setTransliteration(translitResult.value.data.ayahs)
+      } else {
+        setTransliteration([])
+      }
+
+      if (arabicResult.status === "rejected") {
+        console.error("Failed to fetch juz:", arabicResult.reason)
+      }
+      if (translationResult.status === "rejected" && showQuranTranslation) {
+        console.error("Failed to fetch juz translation:", translationResult.reason)
+      }
+      if (translitResult.status === "rejected") {
+        console.error("Failed to fetch juz transliteration:", translitResult.reason)
+      }
+
+      setIsLoading(false)
     }
     fetchJuz()
-    setPage(1)
   }, [juzNumber, quranTranslationLang, showQuranTranslation])
 
   const itemsPerPage = 10
@@ -94,6 +125,21 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
   const startIndex = (page - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const currentAyahs = ayahs.slice(startIndex, endIndex)
+
+  const translationMap = useMemo(() => {
+    const m = new Map<number, JuzAyah>()
+    for (const t of translation) {
+      m.set(t.number, t)
+    }
+    return m
+  }, [translation])
+  const transliterationMap = useMemo(() => {
+    const m = new Map<number, JuzAyah>()
+    for (const t of transliteration) {
+      m.set(t.number, t)
+    }
+    return m
+  }, [transliteration])
 
   const handleNext = () => {
     if (page < totalPages) {
@@ -167,23 +213,13 @@ export function JuzDetailScreen({ juzNumber }: JuzDetailScreenProps) {
         <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.8)", margin: "4px 0 0 0" }}>
           {t.showingVerses} {totalAyahs} {t.verses}
         </p>
-        <p
-          className="font-arabic"
-          style={{ textAlign: "right", fontSize: "32px", marginTop: "12px", color: "#ffffff" }}
-          dir="rtl"
-        >
-          بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-        </p>
-        <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.8)", textAlign: "center", marginTop: "8px" }}>
-          {t.bismillah}
-        </p>
       </div>
 
       {/* Verses */}
       <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "32px" }}>
         {currentAyahs.map((ayah, index) => {
-          const trans = translation.find((t) => t.number === ayah.number)
-          const translit = transliteration.find((t) => t.number === ayah.number)
+          const trans = translationMap.get(ayah.number)
+          const translit = transliterationMap.get(ayah.number)
 
           return (
             <div key={ayah.number} style={{ display: "flex", gap: "12px" }}>

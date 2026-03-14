@@ -198,7 +198,7 @@ export function PrayerTimeCard({ prayerTime, prayerTimes, zoneName, isLoading, l
       </div>
       <p style={{ fontSize: "14px", color: "#a1a1aa", marginBottom: "16px" }}>{zoneName}</p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }} suppressHydrationWarning>
         {prayers.map((prayer, index) => {
           const Icon = prayer.icon
           const isActive = index === activeIndex

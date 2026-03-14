@@ -23,6 +23,7 @@ import { Switch } from "@/components/ui/switch"
 
 interface PrayerData {
   hijri?: string
+  date?: string
   fajr: string
   syuruk: string
   dhuhr: string
@@ -108,6 +109,13 @@ const prayerIcons = {
   asar: CloudSun,
   maghrib: Sunset,
   isyak: Moon,
+}
+
+function getLocalDateString(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
 }
 
 function formatHijriDate(hijriStr: string | undefined, language: "en" | "ms"): string {
@@ -480,8 +488,13 @@ export function DisplayClient() {
         
         if (data.prayers && Array.isArray(data.prayers) && data.prayers.length > 0) {
           setAllPrayers(data.prayers)
-          const dayIndex = new Date().getDate() - 1
-          const prayer = data.prayers[dayIndex] || data.prayers[0]
+          const now = new Date()
+          const todayDate = getLocalDateString(now)
+          let todayIdx = data.prayers.findIndex((p: PrayerData) => p.date === todayDate)
+          if (todayIdx < 0) {
+            todayIdx = now.getDate() - 1
+          }
+          const prayer = data.prayers[todayIdx] || data.prayers[0]
           if (prayer) {
             setTodayPrayer(prayer)
           }
@@ -510,7 +523,9 @@ export function DisplayClient() {
     const now = currentTime
     const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60
 
-    const dayIndex = now.getDate() - 1
+    const todayDate = getLocalDateString(now)
+    const todayIdx = allPrayers.findIndex((p) => p.date === todayDate)
+    const dayIndex = todayIdx >= 0 ? todayIdx : now.getDate() - 1
     const isAfterMaghrib = currentMinutes >= maghribMinutes
     const prayerForHijri = isAfterMaghrib && dayIndex + 1 < allPrayers.length
       ? allPrayers[dayIndex + 1]

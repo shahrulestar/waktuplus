@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useAppStore } from "@/lib/store"
@@ -28,6 +28,29 @@ interface SurahData {
   ayahs: AyahData[]
 }
 
+interface SurahAyahAuxData {
+  number: number
+  text: string
+  numberInSurah: number
+}
+
+function normalizeAyahs(ayahs: AyahData[] | undefined): AyahData[] {
+  if (!Array.isArray(ayahs)) return []
+  return [...ayahs]
+    .filter((ayah) => Number.isFinite(ayah.numberInSurah) && ayah.numberInSurah > 0)
+    .sort((a, b) => a.numberInSurah - b.numberInSurah)
+}
+
+function normalizeAuxAyahs(
+  ayahs: SurahAyahAuxData[] | undefined,
+  allowedNumbers: Set<number>,
+): SurahAyahAuxData[] {
+  if (!Array.isArray(ayahs)) return []
+  return [...ayahs]
+    .filter((ayah) => allowedNumbers.has(ayah.number))
+    .sort((a, b) => a.numberInSurah - b.numberInSurah)
+}
+
 export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
   const { language, showTransliteration, showQuranTranslation, quranTranslationLang } = useAppStore()
   const t = translations[language]
@@ -37,64 +60,125 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [page, setPage] = useState(1)
   const topRef = useRef<HTMLDivElement>(null)
+  const requestIdRef = useRef(0)
 
   useEffect(() => {
+    setPage(1)
+    setSurah(null)
+    setTranslation([])
+    setTransliteration([])
+    setIsLoading(true)
+
+    const currentRequestId = ++requestIdRef.current
+
     const fetchSurah = async () => {
-      setIsLoading(true)
-      try {
-        const translationEdition = quranTranslationLang === "ms" ? "ms.basmeih" : "en.asad"
+      const translationEdition = quranTranslationLang === "ms" ? "ms.basmeih" : "en.asad"
 
-        const arabicPromise = getCachedData(
-          `surah_arabic_${surahNumber}`,
-          async () => {
-            const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}`)
-            if (!res.ok) throw new Error("Failed to fetch")
-            return res.json()
-          },
-          7 * 24 * 60 * 60 * 1000,
-        )
-        const translationPromise = showQuranTranslation
-          ? getCachedData(
-              `surah_${surahNumber}_${translationEdition}`,
-              async () => {
-                const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}/${translationEdition}`)
-                if (!res.ok) throw new Error("Failed to fetch")
-                return res.json()
-              },
-              7 * 24 * 60 * 60 * 1000,
-            )
-          : Promise.resolve({ data: { ayahs: [] } })
-        const translitPromise = getCachedData(
-          `surah_${surahNumber}_transliteration`,
-          async () => {
-            const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}/en.transliteration`)
-            if (!res.ok) throw new Error("Failed to fetch")
-            return res.json()
-          },
-          7 * 24 * 60 * 60 * 1000,
-        )
+      const arabicPromise = getCachedData(
+        `surah_arabic_${surahNumber}`,
+        async () => {
+          const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}/quran-uthmani`)
+          if (!res.ok) throw new Error("Failed to fetch")
+          return res.json()
+        },
+        7 * 24 * 60 * 60 * 1000,
+      )
+      const translationPromise = showQuranTranslation
+        ? getCachedData(
+            `surah_${surahNumber}_${translationEdition}`,
+            async () => {
+              const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}/${translationEdition}`)
+              if (!res.ok) throw new Error("Failed to fetch")
+              return res.json()
+            },
+            7 * 24 * 60 * 60 * 1000,
+          )
+        : Promise.resolve({ data: { ayahs: [] } })
+      const translitPromise = getCachedData(
+        `surah_${surahNumber}_transliteration`,
+        async () => {
+          const res = await fetch(`/api/quran?endpoint=surah/${surahNumber}/en.transliteration`)
+          if (!res.ok) throw new Error("Failed to fetch")
+          return res.json()
+        },
+        7 * 24 * 60 * 60 * 1000,
+      )
 
-        const [arabicData, translationData, translitData] = await Promise.all([arabicPromise, translationPromise, translitPromise])
+      const results = await Promise.allSettled([arabicPromise, translationPromise, translitPromise])
 
-        setSurah(arabicData?.data)
-        setTranslation(translationData?.data?.ayahs || [])
-        setTransliteration(translitData?.data?.ayahs || [])
-      } catch (error) {
-        console.error("Failed to fetch surah:", error)
-      } finally {
-        setIsLoading(false)
+      if (currentRequestId !== requestIdRef.current) return
+
+      const arabicResult = results[0]
+      const translationResult = results[1]
+      const translitResult = results[2]
+
+      const arabicSurah =
+        arabicResult.status === "fulfilled" && arabicResult.value?.data?.number === surahNumber
+          ? (arabicResult.value.data as SurahData)
+          : null
+      const normalizedArabicAyahs = normalizeAyahs(arabicSurah?.ayahs)
+      const allowedAyahNumbers = new Set<number>(normalizedArabicAyahs.map((ayah) => ayah.number))
+
+      if (arabicSurah) {
+        setSurah({
+          ...arabicSurah,
+          ayahs: normalizedArabicAyahs,
+          numberOfAyahs: normalizedArabicAyahs.length || arabicSurah.numberOfAyahs,
+        })
+      } else {
+        setSurah(null)
       }
+
+      if (translationResult.status === "fulfilled" && translationResult.value?.data?.ayahs) {
+        setTranslation(normalizeAuxAyahs(translationResult.value.data.ayahs, allowedAyahNumbers))
+      } else {
+        setTranslation([])
+      }
+      if (translitResult.status === "fulfilled" && translitResult.value?.data?.ayahs) {
+        setTransliteration(normalizeAuxAyahs(translitResult.value.data.ayahs, allowedAyahNumbers))
+      } else {
+        setTransliteration([])
+      }
+
+      if (arabicResult.status === "rejected") {
+        console.error("Failed to fetch surah:", arabicResult.reason)
+      } else if (!arabicSurah) {
+        console.error("Surah payload mismatch for requested surah:", surahNumber)
+      }
+      if (translationResult.status === "rejected" && showQuranTranslation) {
+        console.error("Failed to fetch surah translation:", translationResult.reason)
+      }
+      if (translitResult.status === "rejected") {
+        console.error("Failed to fetch surah transliteration:", translitResult.reason)
+      }
+
+      setIsLoading(false)
     }
     fetchSurah()
-    setPage(1)
   }, [surahNumber, quranTranslationLang, showQuranTranslation])
 
   const itemsPerPage = 10
-  const totalPages = surah ? Math.max(1, Math.ceil(surah.numberOfAyahs / itemsPerPage)) : 1
+  const ayahsList = surah?.ayahs ?? []
+  const totalPages = Math.max(1, Math.ceil(ayahsList.length / itemsPerPage))
 
   const startIndex = (page - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentAyahs = surah?.ayahs.slice(startIndex, endIndex) || []
+  const currentAyahs = ayahsList.slice(startIndex, endIndex)
+
+  const translationMap = useMemo(() => {
+    const m = new Map<number, { number: number; text: string; numberInSurah: number }>()
+    for (const t of translation) {
+      m.set(t.number, t)
+    }
+    return m
+  }, [translation])
+  const transliterationMap = useMemo(() => {
+    const m = new Map<number, { number: number; text: string; numberInSurah: number }>()
+    for (const t of transliteration) {
+      m.set(t.number, t)
+    }
+    return m
+  }, [transliteration])
 
   const handleNext = () => {
     if (page < totalPages) {
@@ -167,23 +251,13 @@ export function SurahDetailScreen({ surahNumber }: SurahDetailScreenProps) {
         <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.8)", margin: "4px 0 0 0" }}>
           {surah?.numberOfAyahs} {t.verses} • {surah?.revelationType}
         </p>
-        <p
-          className="font-arabic"
-          style={{ textAlign: "right", fontSize: "32px", marginTop: "12px", color: "#ffffff" }}
-          dir="rtl"
-        >
-          بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-        </p>
-        <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.8)", textAlign: "center", marginTop: "8px" }}>
-          {t.bismillah}
-        </p>
       </div>
 
       {/* Verses */}
       <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "32px" }}>
         {currentAyahs.map((ayah) => {
-          const trans = translation.find((t) => t.numberInSurah === ayah.numberInSurah)
-          const translit = transliteration.find((t) => t.numberInSurah === ayah.numberInSurah)
+          const trans = translationMap.get(ayah.number)
+          const translit = transliterationMap.get(ayah.number)
 
           return (
             <div key={ayah.number} style={{ display: "flex", gap: "12px" }}>

@@ -143,7 +143,7 @@ export function PrayerTimesClientPage() {
                 cursor: "pointer",
               }}
             >
-              <span style={{ fontSize: "14px", color: "#ffffff" }}>
+              <span style={{ fontSize: "14px", color: "#ffffff" }} suppressHydrationWarning>
                 {t[months.find((m) => m.value === month)?.key || "january"]} {currentYear}
               </span>
               <ChevronDown
@@ -243,7 +243,7 @@ export function PrayerTimesClientPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody suppressHydrationWarning>
                 {prayers.map((prayer, index) => {
                   const isToday = month === currentMonth && index + 1 === todayDate
                   return (
