@@ -73,7 +73,6 @@ export const translations = {
     locateMe: "Locate Me",
     language: "Language",
     aboutApp: "About App",
-    followInstagram: "Follow us on Instagram",
     // Prayer Times Page
     selectZone: "Select Zone",
     selectYear: "Select Year",
@@ -237,7 +236,6 @@ export const translations = {
     locateMe: "Kesan Lokasi Saya",
     language: "Bahasa",
     aboutApp: "Tentang Aplikasi",
-    followInstagram: "Ikuti kami di Instagram",
     // Prayer Times Page
     selectZone: "Pilih Zon",
     selectYear: "Pilih Tahun",

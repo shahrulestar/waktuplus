@@ -147,24 +147,6 @@ export function SettingsScreen() {
       <div style={{ marginBottom: "24px" }}>
         <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "12px", color: "#ffffff" }}>{t.aboutApp}</h2>
         <div style={{ backgroundColor: "#27272a", borderRadius: "8px", padding: "16px" }}>
-          <button
-            onClick={() => window.open("https://instagram.com/waktuplus", "_blank")}
-            style={{
-              width: "100%",
-              backgroundColor: "#2563eb",
-              color: "#ffffff",
-              fontWeight: 500,
-              fontSize: "14px",
-              borderRadius: "8px",
-              height: "40px",
-              border: "none",
-              cursor: "pointer",
-              marginBottom: "16px",
-            }}
-          >
-            {t.followInstagram}
-          </button>
-
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <p style={{ fontSize: "14px", color: "#71717a", lineHeight: 1.6, margin: 0 }}>
               {t.aboutPrayerData}
