@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef } from "react"
-import { Moon, Sun, Sunrise, Sunset, CloudSun, Settings, AlertTriangle, ChevronDown, Expand, Shrink, X } from "lucide-react"
+import { Moon, Sun, Sunrise, Sunset, CloudSun, Settings, AlertTriangle, ChevronDown, Expand, Shrink } from "lucide-react"
 import { useAppStore } from "@/lib/store"
 import { prayerZones } from "@/lib/prayer-zones"
 import { ZoneSelector } from "@/components/zone-selector"
@@ -28,8 +28,6 @@ import {
   displayAlertTextClass,
   displayFooterClass,
   displaySettingsTitleClass,
-  displaySettingsSectionTitleClass,
-  displaySettingsSectionDescClass,
   displaySettingsLabelClass,
   displaySettingsHelperClass,
 } from "@/lib/display-typography"
@@ -175,12 +173,17 @@ function getPrayerName(key: string, language: "en" | "ms", isFriday: boolean): s
 
 function formatTimeDisplay(date: Date, format: "12h" | "24h"): string {
   if (format === "12h") {
-    return date.toLocaleTimeString("en-US", {
+    const parts = new Intl.DateTimeFormat("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
       hour12: true,
-    })
+    }).formatToParts(date)
+    return parts
+      .filter((p) => p.type !== "dayPeriod")
+      .map((p) => p.value)
+      .join("")
+      .trim()
   }
   return date.toLocaleTimeString("en-GB", {
     hour: "2-digit",
@@ -193,9 +196,43 @@ function formatPrayerTime(time: string, format: "12h" | "24h"): string {
   if (format === "24h" || !time.includes(":")) return time
   const [h, m] = time.split(":").map(Number)
   if (isNaN(h) || isNaN(m)) return time
-  const period = h >= 12 ? "PM" : "AM"
   const hour12 = h % 12 || 12
-  return `${hour12}:${m.toString().padStart(2, "0")} ${period}`
+  return `${hour12}:${m.toString().padStart(2, "0")}`
+}
+
+function DisplayTime({
+  value,
+  format,
+  isCompact,
+  className,
+  type = "clock",
+}: {
+  value: Date | string
+  format: "12h" | "24h"
+  isCompact: boolean
+  className?: string
+  type?: "clock" | "prayer"
+}) {
+  const text = type === "prayer"
+    ? formatPrayerTime(value as string, format)
+    : formatTimeDisplay(value as Date, format)
+  const content = (
+    <span
+      className={className}
+      style={isCompact && format === "12h" ? { whiteSpace: "nowrap" } : undefined}
+      suppressHydrationWarning
+    >
+      {text}
+    </span>
+  )
+  if (type === "prayer" && isCompact && format === "12h") {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+        {content}
+      </div>
+    )
+  }
+  return content
 }
 
 type LayoutMode = "compact" | "tv"
@@ -262,6 +299,17 @@ export function DisplayClient() {
   }, [])
 
   useEffect(() => {
+    const prevOverflow = document.body.style.overflow
+    const prevOverscroll = document.body.style.overscrollBehavior
+    document.body.style.overflow = "hidden"
+    document.body.style.overscrollBehavior = "none"
+    return () => {
+      document.body.style.overflow = prevOverflow
+      document.body.style.overscrollBehavior = prevOverscroll
+    }
+  }, [])
+
+  useEffect(() => {
     try {
       if (localStorage.getItem("waktu-display-fullscreen") !== "true") return
     } catch { return }
@@ -319,10 +367,9 @@ export function DisplayClient() {
 
     const updateScale = () => {
       const availableWidth = wrapperEl.clientWidth || window.innerWidth - currentPadding
-      const availableHeight = wrapperEl.clientHeight || window.innerHeight - currentPadding
       const scaleX = availableWidth / REF_WIDTH
-      const scaleY = availableHeight / REF_HEIGHT
-      setScale(Math.min(scaleX, scaleY))
+      // Fill horizontal space on desktop; vertical overflow is clipped by the outer shell.
+      setScale(scaleX)
     }
 
     updateScale()
@@ -364,7 +411,7 @@ export function DisplayClient() {
       }
 
       const bannerDismissed = localStorage.getItem("waktu-display-azan-banner-dismissed") === "true"
-      if (!bannerDismissed && window.innerWidth >= 768) {
+      if (!bannerDismissed && getLayoutMode(window.innerWidth) === "tv") {
         setShowAzanBanner(true)
       }
     } catch (e) {
@@ -384,7 +431,7 @@ export function DisplayClient() {
       if (document.visibilityState === "visible") {
         try {
           const bannerDismissed = localStorage.getItem("waktu-display-azan-banner-dismissed") === "true"
-          if (!bannerDismissed && window.innerWidth >= 768) {
+          if (!bannerDismissed && getLayoutMode(window.innerWidth) === "tv") {
             setShowAzanBanner(true)
           }
         } catch {}
@@ -395,6 +442,7 @@ export function DisplayClient() {
   }, [])
 
   const playAzanSound = useCallback((prayerKey?: string, onEnded?: () => void) => {
+    if (getLayoutMode(window.innerWidth) === "compact") return
     if (azanAudioRef.current) {
       azanAudioRef.current.pause()
       azanAudioRef.current.currentTime = 0
@@ -422,7 +470,7 @@ export function DisplayClient() {
   useEffect(() => {
     const isAzanNow = alertState.type === "azan_now"
     const alreadyPlaying = azanAudioRef.current && !azanAudioRef.current.paused
-    if (isAzanNow && azanSoundEnabled && !alreadyPlaying) {
+    if (isAzanNow && azanSoundEnabled && !alreadyPlaying && !isCompact) {
       playAzanSound(alertState.prayerKey)
     }
     const inPostAzanWindow = inPostAzanWindowRef.current
@@ -433,7 +481,7 @@ export function DisplayClient() {
     if (!isAzanNow && !shouldNotStop && azanAudioRef.current && !isTestingAzan) {
       stopAzanSound()
     }
-  }, [alertState.type, azanSoundEnabled, playAzanSound, stopAzanSound, isTestingAzan])
+  }, [alertState.type, azanSoundEnabled, playAzanSound, stopAzanSound, isTestingAzan, isCompact])
 
   useEffect(() => {
     return () => {
@@ -592,7 +640,7 @@ export function DisplayClient() {
           const key = nextPrayerKey ?? "zohor"
           setAlertState({ type: "azan_now", prayerName: testPrayerName, prayerKey: key })
           const alreadyPlaying = azanAudioRef.current && !azanAudioRef.current.paused
-          if (azanSoundEnabled && !alreadyPlaying) {
+          if (azanSoundEnabled && !alreadyPlaying && !isCompact) {
             playAzanSound(key, () => {
               setTestMode(null)
               setAlertState({ type: "none" })
@@ -1085,34 +1133,31 @@ export function DisplayClient() {
     >
       <div style={{ flex: "1 1 0%", minWidth: 0, width: isCompact ? "100%" : undefined, display: "flex", flexDirection: "column", gap: "24px" }}>
         <div>
-          <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <h3 className={cn("font-semibold", displaySettingsSectionTitleClass())} style={{ color: "#ffffff", margin: 0 }}>{t.sectionDisplayIdentity}</h3>
-            <p className={displaySettingsSectionDescClass()} style={{ color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionDisplayIdentityDesc}</p>
-          </div>
-
-          <div style={{ marginBottom: "16px" }}>
-            <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-              {t.customTitle}
-            </label>
-            <input
-              type="text"
-              value={tempCustomTitle}
-              onChange={(e) => setTempCustomTitle(e.target.value)}
-              placeholder={t.customTitlePlaceholder}
-              className={cn("placeholder-inter", displaySettingsLabelClass())}
-              style={{
-                width: "100%",
-                padding: "12px",
-                backgroundColor: "#27272a",
-                border: "none",
-                borderRadius: "8px",
-                color: "#ffffff",
-                outline: "none",
-                boxSizing: "border-box",
-                fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-              }}
-            />
-          </div>
+          {!isCompact && (
+            <div style={{ marginBottom: "16px" }}>
+              <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+                {t.customTitle}
+              </label>
+              <input
+                type="text"
+                value={tempCustomTitle}
+                onChange={(e) => setTempCustomTitle(e.target.value)}
+                placeholder={t.customTitlePlaceholder}
+                className={cn("placeholder-inter", displaySettingsLabelClass())}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  backgroundColor: "#27272a",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#ffffff",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+                }}
+              />
+            </div>
+          )}
 
           <div style={{ marginBottom: "16px" }}>
             <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
@@ -1152,7 +1197,7 @@ export function DisplayClient() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
             {[
-              { label: t.showHeader, checked: tempShowHeader, onChange: setTempShowHeader },
+              ...(isCompact ? [] : [{ label: t.showHeader, checked: tempShowHeader, onChange: setTempShowHeader }]),
               { label: t.showZone, checked: tempShowZone, onChange: setTempShowZone },
             ].map((item) => (
               <div
@@ -1173,6 +1218,7 @@ export function DisplayClient() {
                 <Switch checked={item.checked} onCheckedChange={item.onChange} />
               </div>
             ))}
+            {!isCompact && (
             <div
               style={{
                 display: "flex",
@@ -1194,6 +1240,7 @@ export function DisplayClient() {
               </div>
               <Switch checked={tempAutoRefresh} onCheckedChange={setTempAutoRefresh} />
             </div>
+            )}
           </div>
 
           <div style={{ marginBottom: "16px" }}>
@@ -1226,11 +1273,6 @@ export function DisplayClient() {
         </div>
 
         <div>
-          <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <h3 className={cn("font-semibold", displaySettingsSectionTitleClass())} style={{ color: "#ffffff", margin: 0 }}>{t.sectionLocation}</h3>
-            <p className={displaySettingsSectionDescClass()} style={{ color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionLocationDesc}</p>
-          </div>
-
           <div style={{ marginBottom: "12px" }}>
             <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
               {t.prayerZone}
@@ -1274,14 +1316,12 @@ export function DisplayClient() {
       </div>
 
       <div style={{ flex: "1 1 0%", minWidth: 0, width: isCompact ? "100%" : undefined, display: "flex", flexDirection: "column", gap: "28px" }}>
+        {!isCompact && (
         <div>
-          <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <h3 className={cn("font-semibold", displaySettingsSectionTitleClass())} style={{ color: "#ffffff", margin: 0 }}>{t.sectionAlerts}</h3>
-            <p className={displaySettingsSectionDescClass()} style={{ color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAlertsDesc}</p>
-          </div>
-
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <p className={displaySettingsHelperClass()} style={{ color: "#71717a", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertBefore}</p>
+            <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+              {t.alertBefore}
+            </label>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", backgroundColor: "#27272a", borderRadius: "8px", gap: "12px" }}>
               <span className={displaySettingsLabelClass()} style={{ color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', flex: 1, minWidth: 0 }}>
                 {t.testAzanCountdown} ({ALERT_DURATION_MINS.azan_countdown} {t.mins})
@@ -1293,7 +1333,9 @@ export function DisplayClient() {
               />
             </div>
 
-            <p className={displaySettingsHelperClass()} style={{ color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAt}</p>
+            <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+              {t.alertAt}
+            </label>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", backgroundColor: "#27272a", borderRadius: "8px", gap: "12px" }}>
               <span className={displaySettingsLabelClass()} style={{ color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', flex: 1, minWidth: 0 }}>
                 {t.testAzanNow} ({ALERT_DURATION_MINS.azan_now} {t.mins})
@@ -1305,7 +1347,9 @@ export function DisplayClient() {
               />
             </div>
 
-            <p className={displaySettingsHelperClass()} style={{ color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAfter}</p>
+            <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+              {t.alertAfter}
+            </label>
             {(["iqamah", "khutbah_countdown"] as AlertType[]).map((key) => {
               const alertLabels: Record<AlertType, string> = {
                 azan_countdown: t.testAzanCountdown,
@@ -1427,6 +1471,7 @@ export function DisplayClient() {
             </div>
           </div>
         </div>
+        )}
 
         <div>
           <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
@@ -1456,12 +1501,8 @@ export function DisplayClient() {
           </div>
         </div>
 
+        {!isCompact && (
         <div>
-          <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <h3 className={cn("font-semibold", displaySettingsSectionTitleClass())} style={{ color: "#ffffff", margin: 0 }}>{t.sectionAudio}</h3>
-            <p className={displaySettingsSectionDescClass()} style={{ color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAudioDesc}</p>
-          </div>
-
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", backgroundColor: "#27272a", borderRadius: "8px", marginBottom: "12px", gap: "12px" }}>
             <span className={displaySettingsLabelClass()} style={{ color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', flex: 1, minWidth: 0 }}>
               {t.azanSound}
@@ -1501,6 +1542,7 @@ export function DisplayClient() {
             {isTestingAzan ? t.stopAzan : t.playAzan}
           </button>
         </div>
+        )}
       </div>
     </div>
   )
@@ -1515,17 +1557,17 @@ export function DisplayClient() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        paddingLeft: padding,
-        paddingRight: padding,
-        paddingTop: padding,
-        paddingBottom: padding,
+        paddingLeft: isCompact ? `calc(${padding}px + env(safe-area-inset-left, 0px))` : padding,
+        paddingRight: isCompact ? `calc(${padding}px + env(safe-area-inset-right, 0px))` : padding,
+        paddingTop: isCompact ? `calc(${padding}px + env(safe-area-inset-top, 0px))` : padding,
+        paddingBottom: isCompact ? `calc(${padding}px + env(safe-area-inset-bottom, 0px))` : padding,
         boxSizing: "border-box",
         cursor: settingsVisible ? "auto" : "none",
         userSelect: "none",
         WebkitUserSelect: "none",
       }}
     >
-      {showAzanBanner && (
+      {showAzanBanner && viewportWidth >= 1024 && (
         <div
           style={{
             position: "fixed",
@@ -1588,6 +1630,18 @@ export function DisplayClient() {
         }}
       >
         <div
+          style={
+            isCompact
+              ? { width: "100%", height: "100%", minHeight: 0 }
+              : {
+                  width: `${1920 * scale}px`,
+                  height: `${1080 * scale}px`,
+                  flexShrink: 0,
+                  overflow: "hidden",
+                }
+          }
+        >
+        <div
           ref={contentRef}
           data-display-content
           style={{
@@ -1603,7 +1657,7 @@ export function DisplayClient() {
                   height: "1080px",
                   minHeight: "1080px",
                   transform: `scale(${scale})`,
-                  transformOrigin: "center center",
+                  transformOrigin: "top left",
                 }),
             backgroundColor: "#18181b",
             padding: 0,
@@ -1639,9 +1693,12 @@ export function DisplayClient() {
             <h1 className={cn("font-bold leading-tight", displayHeaderTitleClass())} style={{ color: themeColorMap[themeColor].primary }}>
               {customTitle || "Waktu+"}
             </h1>
-            <p className={cn("metric-number text-white leading-tight", displayHeaderTitleClass())} suppressHydrationWarning>
-              {formatTimeDisplay(currentTime, timeFormat)}
-            </p>
+            <DisplayTime
+              value={currentTime}
+              format={timeFormat}
+              isCompact={isCompact}
+              className={cn("metric-number text-white leading-tight", displayHeaderTitleClass())}
+            />
           </div>
         </div>
       )}
@@ -1697,9 +1754,13 @@ export function DisplayClient() {
                   {prayerName}
                 </span>
               </div>
-              <span className={cn("metric-number text-white leading-tight", displayPrayerTimeClass(hasAlert))}>
-                {formatPrayerTime(prayerTimes[index], timeFormat)}
-              </span>
+              <DisplayTime
+                value={prayerTimes[index]}
+                format={timeFormat}
+                isCompact={isCompact}
+                type="prayer"
+                className={cn("metric-number text-white leading-tight", displayPrayerTimeClass(hasAlert))}
+              />
               <div
                 style={{
                   marginTop: isCompact ? "2px" : (hasAlert ? "4px" : "8px"),
@@ -1761,7 +1822,14 @@ export function DisplayClient() {
           }}
         >
           {showZone && zoneInfo && (
-            <p style={{ margin: 0 }}>
+            <p
+              className={cn("min-w-0 truncate", isCompact && "w-full max-w-full")}
+              style={{
+                margin: 0,
+                maxWidth: isCompact ? "100%" : undefined,
+              }}
+              title={`${t.zone}: ${zoneInfo.name}`}
+            >
               <span style={{ fontWeight: 600, color: "#ffffff" }}>{t.zone}: {zoneInfo.name}</span>
             </p>
           )}
@@ -1771,13 +1839,26 @@ export function DisplayClient() {
               {!isCompact && <span style={{ fontWeight: 600 }}> · </span>}
               <span style={{ fontWeight: 600 }} suppressHydrationWarning>{hijriDate}</span>
               {!isCompact && <span style={{ fontWeight: 600 }}> · </span>}
-              <span className="metric-number" style={{ display: "inline-block", minWidth: isCompact ? undefined : (timeFormat === "12h" ? "7.5em" : "5.5em"), textAlign: isCompact ? "center" : "left" }} suppressHydrationWarning>
-                {formatTimeDisplay(currentTime, timeFormat)}
+              <span
+                style={{
+                  display: "inline-block",
+                  minWidth: isCompact ? undefined : (timeFormat === "12h" ? "7.5em" : "5.5em"),
+                  textAlign: isCompact ? "center" : "left",
+                }}
+                suppressHydrationWarning
+              >
+                <DisplayTime
+                  value={currentTime}
+                  format={timeFormat}
+                  isCompact={isCompact}
+                  className={cn("metric-number text-white", displayFooterClass(hasAlert))}
+                />
               </span>
             </p>
           )}
         </div>
       )}
+        </div>
         </div>
       </div>
       {viewportWidth >= 768 && (
@@ -1872,26 +1953,7 @@ export function DisplayClient() {
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
           <DrawerHeader className="sticky top-0 z-10 shrink-0 border-b border-zinc-800 bg-[#18181b] px-4 pb-3 pt-2 text-left">
-            <div className="flex items-center justify-between gap-3">
-              <DrawerTitle className="text-lg font-semibold text-white">{t.settings}</DrawerTitle>
-              <button
-                type="button"
-                onClick={closeSettings}
-                aria-label={t.dismiss}
-                style={{
-                  backgroundColor: "#27272a",
-                  border: "none",
-                  borderRadius: "8px",
-                  padding: "8px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <X style={{ width: "18px", height: "18px", color: "#ffffff" }} />
-              </button>
-            </div>
+            <DrawerTitle className="text-lg font-semibold text-white">{t.settings}</DrawerTitle>
           </DrawerHeader>
           <div className="scrollbar-hide flex-1 overflow-y-auto px-4 py-4">
             {renderSettingsBody()}

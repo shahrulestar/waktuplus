@@ -135,7 +135,7 @@ export default function RootLayout({
           color: "#ffffff",
           margin: 0,
           padding: 0,
-          minHeight: "100vh",
+          minHeight: "100dvh",
         }}
       >
         <JsonLd data={getSiteJsonLd()} />
