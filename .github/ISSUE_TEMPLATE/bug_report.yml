@@ -1,0 +1,85 @@
+name: Bug report
+description: Report something that is broken in the prayer time display
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    validations:
+      required: false
+    attributes:
+      value: |
+        Thanks for helping improve Waktu+. Please do not include passwords, API keys, or other secrets.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly.
+      placeholder: The azan countdown overlay did not appear at the expected time.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      placeholder: The countdown should appear 15 minutes before Subuh.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open https://waktuplus.xyz
+        2. Set zone to WLY01
+        3. Enable azan countdown alert
+        4. Wait until ...
+    validations:
+      required: true
+
+  - type: input
+    id: zone
+    attributes:
+      label: Prayer zone (if relevant)
+      placeholder: WLY01
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device type
+      options:
+        - Desktop browser
+        - TV / monitor browser
+        - Tablet
+        - Mobile phone
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Chrome 131 on Windows 11
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or recordings
+      description: Drag and drop images or paste links here.
+      placeholder: Optional but helpful for display layout issues.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and did not find a duplicate
+          required: true
+        - label: I removed any personal or sensitive information from this report
+          required: true

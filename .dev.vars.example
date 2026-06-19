@@ -1,0 +1,2 @@
+# Local Cloudflare / Wrangler secrets (do not commit)
+.dev.vars

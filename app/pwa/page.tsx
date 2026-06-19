@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import PWAScreen from "@/components/screens/pwa-screen"
+import { OG_IMAGE, SITE_URL } from "@/lib/site"
 
 export const metadata: Metadata = {
   title: "PWA Installation Guide - Waktu+",
@@ -8,14 +9,12 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PWA Installation Guide - Waktu+",
     description: "Learn how to install Waktu+ as a PWA for offline access",
-    url: "https://waktuplus.xyz/pwa",
-    images: [
-      { url: "/main.png", width: 1200, height: 630, alt: "Waktu+ PWA" },
-    ],
+    url: `${SITE_URL}/pwa`,
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/main.png"],
+    images: [OG_IMAGE.url],
   },
 }
 

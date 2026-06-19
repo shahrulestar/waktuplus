@@ -1,48 +1,28 @@
-# Waktu+ - Malaysian Prayer Times & Al-Quran App
+# Waktu+ - Prayer Times Display
 
-> A modern web-based prayer time display for mosques, with Quran and more accessible on mobile. No ads, no signup.
+> Free full-screen prayer times display for mosques and suraus in Malaysia. JAKIM-accurate, bilingual, no ads, no signup.
 
 ## Overview
 
-Waktu+ is a comprehensive Islamic web application designed for Muslims in Malaysia. It provides accurate prayer times based on JAKIM (Jabatan Kemajuan Islam Malaysia) data, a complete Al-Quran reader, Islamic calendar, and a full-screen mosque display mode.
+Waktu+ is a full-screen prayer times display designed for mosques and suraus in Malaysia. It provides accurate prayer times based on JAKIM (Jabatan Kemajuan Islam Malaysia) data, with large typography, azan alerts, and Iqamah countdowns suitable for TVs and monitors.
 
-Website: https://waktuplus.xyz
+Website: https://waktu.shahrulestar.com
 
 ## Pages
 
+### About (/about)
+- Simple project overview for Waktu+ prayer times display
+
 ### Home (/)
-- Real-time prayer times with countdown to next prayer
-- Daily verse from the Quran
-- Ramadan countdown (when applicable)
-- Automatic zone detection via GPS
-
-### Prayer Times (/prayer-times)
-- Monthly prayer timetable for all Malaysian zones
-- Full schedule: Imsak, Fajr/Subuh, Sunrise/Syuruk, Dhuhr/Zohor, Asr/Asar, Maghrib, Isha/Isyak
-- Zone selector with 46 zones across Malaysia
-
-### Al-Quran (/quran)
-- Complete Quran with 114 Surahs and 30 Juz
-- Arabic text with transliteration and translation
-- Browse by Surah (/quran/surah/[1-114]) or Juz (/quran/juz/[1-30])
-
-### Islamic Calendar (/islamic-calendar)
-- Important Islamic dates for 2026 based on JAKIM Malaysia
-- Events: Isra Mi'raj, Ramadan, Nuzul al-Quran, Eid al-Fitr, Eid al-Adha, Islamic New Year, Maulidur Rasul
-
-### Waktu+ Display (/display)
-- Full-screen display mode designed for mosques and suraus
-- Live prayer times with large typography
+- Full-screen prayer times display for mosques and suraus
+- Prayer times with large typography
+- Real-time clock synced to server time
+- Countdown to the next prayer
 - Azan alerts and Iqamah countdown
 - Friday/Jumaah khutbah alerts
-- Customizable title and settings
-
-### Links (/links)
-- Quick access page to all Waktu+ features
-
-### Settings (/settings)
-- Language toggle: English and Bahasa Malaysia
-- Prayer zone selection
+- Sunrise (Syuruk) countdown
+- Customizable title, theme color, and settings
+- Automatic zone detection via GPS
 
 ## Localization
 - Bilingual: English and Bahasa Malaysia
@@ -52,10 +32,9 @@ Website: https://waktuplus.xyz
 ## Technical Stack
 - Built with Next.js and React
 - Progressive Web App (PWA) support
-- Responsive design for mobile and desktop
-- Zustand for state management
+- Responsive design scaled from a 1920x1080 layout
 
 ## API Endpoints
 - /api/prayer — Prayer times data from JAKIM (waktusolat.app)
-- /api/quran — Quran data from alquran.cloud API
+- /api/time — Server time synchronization
 - /api/locate — GPS-based prayer zone detection

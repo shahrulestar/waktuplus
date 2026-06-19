@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { IslamicCalendarClient } from "./islamic-calendar-client"
+import { OG_IMAGE, SITE_URL } from "@/lib/site"
 
 export const metadata: Metadata = {
   title: "Islamic Calendar 2026 | Waktu+",
@@ -8,14 +9,12 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Islamic Calendar 2026 | Waktu+",
     description: "Important Islamic dates and holidays in Malaysia for 2026",
-    url: "https://waktuplus.xyz/islamic-calendar",
-    images: [
-      { url: "/main.png", width: 1200, height: 630, alt: "Waktu+ Islamic Calendar" },
-    ],
+    url: `${SITE_URL}/islamic-calendar`,
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/main.png"],
+    images: [OG_IMAGE.url],
   },
 }
 

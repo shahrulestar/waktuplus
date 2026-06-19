@@ -1,8 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef } from "react"
-import { useRouter } from "next/navigation"
-import { Moon, Sun, Sunrise, Sunset, CloudSun, Settings, AlertTriangle, ChevronDown, Monitor, Expand, Shrink } from "lucide-react"
+import { Moon, Sun, Sunrise, Sunset, CloudSun, Settings, AlertTriangle, ChevronDown, Expand, Shrink, X } from "lucide-react"
 import { useAppStore } from "@/lib/store"
 import { prayerZones } from "@/lib/prayer-zones"
 import { ZoneSelector } from "@/components/zone-selector"
@@ -14,12 +13,25 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerDescription,
   DrawerFooter,
-  DrawerClose,
 } from "@/components/ui/drawer"
-import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import {
+  displayPrayerTimeClass,
+  displayPrayerNameClass,
+  displayCountdownClass,
+  displayHeaderDateClass,
+  displayHeaderTitleClass,
+  displayAlertTextClass,
+  displayFooterClass,
+  displaySettingsTitleClass,
+  displaySettingsSectionTitleClass,
+  displaySettingsSectionDescClass,
+  displaySettingsLabelClass,
+  displaySettingsHelperClass,
+} from "@/lib/display-typography"
 
 interface PrayerData {
   hijri?: string
@@ -185,12 +197,16 @@ function formatPrayerTime(time: string, format: "12h" | "24h"): string {
   return `${hour12}:${m.toString().padStart(2, "0")} ${period}`
 }
 
+type LayoutMode = "compact" | "tv"
+
+function getLayoutMode(width: number): LayoutMode {
+  return width < 1024 ? "compact" : "tv"
+}
+
 export function DisplayClient() {
-  const router = useRouter()
   const { selectedZone, setSelectedZone, language, setLanguage } = useAppStore()
   const t = translations[language]
   const [currentTime, setCurrentTime] = useState(new Date())
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false)
   const [todayPrayer, setTodayPrayer] = useState<PrayerData | null>(null)
   const [nextPrayerKey, setNextPrayerKey] = useState<string | null>(null)
   const [countdown, setCountdown] = useState<string>("")
@@ -281,7 +297,10 @@ export function DisplayClient() {
     return 16
   }
 
-  const padding = Math.max(4, getResponsivePadding(viewportWidth) * (viewportWidth >= 1440 ? scale : 1))
+  const layoutMode = getLayoutMode(viewportWidth)
+  const isCompact = layoutMode === "compact"
+  const padding = Math.max(4, getResponsivePadding(viewportWidth) * (layoutMode === "tv" && viewportWidth >= 1440 ? scale : 1))
+  const fabBottom = isCompact ? "calc(16px + env(safe-area-inset-bottom, 0px))" : "24px"
 
   useEffect(() => {
     const handleResize = () => setViewportWidth(window.innerWidth)
@@ -290,16 +309,13 @@ export function DisplayClient() {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  useEffect(() => {
-    const checkMobile = () => {
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768
-      setIsMobileDrawerOpen(isMobile)
-    }
-    checkMobile()
-  }, [])
-
   // Scale based on fixed 1920x1080 design so resolution stays consistent when alert shows
   useEffect(() => {
+    if (getLayoutMode(viewportWidth) === "compact") {
+      setScale(1)
+      return
+    }
+
     const wrapperEl = wrapperRef.current
     if (!wrapperEl) return
 
@@ -937,6 +953,12 @@ export function DisplayClient() {
     setZoneSelectorOpen(false)
   }
 
+  const closeSettings = useCallback(() => {
+    setShowSettings(false)
+    setShowTestAlertDropdown(false)
+    setZoneSelectorOpen(false)
+  }, [])
+
   const prayerKeys = ["subuh", "syuruk", "zohor", "asar", "maghrib", "isyak"]
   const prayerTimes = todayPrayer
     ? [todayPrayer.fajr, todayPrayer.syuruk, todayPrayer.dhuhr, todayPrayer.asr, todayPrayer.maghrib, todayPrayer.isha]
@@ -1001,25 +1023,30 @@ export function DisplayClient() {
           backgroundColor: "rgba(234, 179, 8, 0.1)",
           border: "2px solid #eab308",
           borderRadius: "8px",
-          padding: "24px",
-          marginBottom: "24px",
+          padding: isCompact ? "12px" : "24px",
+          marginBottom: isCompact ? "12px" : "24px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: "16px",
+          gap: isCompact ? "8px" : "16px",
           flexShrink: 0,
-          minHeight: "96px",
-          maxHeight: "120px",
+          minHeight: isCompact ? "auto" : "96px",
+          maxHeight: isCompact ? "none" : "120px",
         }}
       >
-        <AlertTriangle style={{ width: "64px", height: "64px", color: "#eab308", flexShrink: 0 }} />
-        <span
+        <AlertTriangle
           style={{
-            fontSize: "64px",
-            fontWeight: 500,
+            width: isCompact ? "clamp(24px, 6vw, 40px)" : "64px",
+            height: isCompact ? "clamp(24px, 6vw, 40px)" : "64px",
+            color: "#eab308",
+            flexShrink: 0,
+          }}
+        />
+        <span
+          className={cn("font-medium leading-tight", displayAlertTextClass())}
+          style={{
             color: "#eab308",
             textAlign: "center",
-            lineHeight: 1.2,
             wordBreak: "break-word",
             fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
           }}
@@ -1029,6 +1056,460 @@ export function DisplayClient() {
       </div>
     )
   }
+
+  const renderSaveButton = () => (
+    <button
+      onClick={() => saveSettings()}
+      disabled={!hasSettingsChanged}
+      className={displaySettingsLabelClass()}
+      style={{
+        width: "100%",
+        padding: "12px",
+        backgroundColor: hasSettingsChanged ? "#3b82f6" : "#27272a",
+        border: "none",
+        borderRadius: "8px",
+        color: "#ffffff",
+        fontWeight: 500,
+        cursor: hasSettingsChanged ? "pointer" : "not-allowed",
+        opacity: hasSettingsChanged ? 1 : 0.5,
+        fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+        transition: "background-color 0.15s ease, opacity 0.15s ease",
+      }}
+    >
+      {t.save}
+    </button>
+  )
+
+  const renderSettingsBody = () => (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: isCompact ? "column" : (viewportWidth >= 768 ? "row" : "column"),
+        gap: "24px",
+        alignItems: "flex-start",
+      }}
+    >
+      <div style={{ flex: "1 1 0%", minWidth: 0, width: isCompact ? "100%" : undefined, display: "flex", flexDirection: "column", gap: "24px" }}>
+        <div>
+          <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <h3 className={cn("font-semibold", displaySettingsSectionTitleClass())} style={{ color: "#ffffff", margin: 0 }}>{t.sectionDisplayIdentity}</h3>
+            <p className={displaySettingsSectionDescClass()} style={{ color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionDisplayIdentityDesc}</p>
+          </div>
+
+          <div style={{ marginBottom: "16px" }}>
+            <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+              {t.customTitle}
+            </label>
+            <input
+              type="text"
+              value={tempCustomTitle}
+              onChange={(e) => setTempCustomTitle(e.target.value)}
+              placeholder={t.customTitlePlaceholder}
+              className={cn("placeholder-inter", displaySettingsLabelClass())}
+              style={{
+                width: "100%",
+                padding: "12px",
+                backgroundColor: "#27272a",
+                border: "none",
+                borderRadius: "8px",
+                color: "#ffffff",
+                outline: "none",
+                boxSizing: "border-box",
+                fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: "16px" }}>
+            <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+              {t.themeColor}
+            </label>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+              }}
+            >
+              {themeColorKeys.map((colorKey) => (
+                <button
+                  key={colorKey}
+                  onClick={() => setTempThemeColor(colorKey)}
+                  style={{
+                    flex: isCompact ? "0 0 auto" : "1 1 0%",
+                    aspectRatio: "1",
+                    minWidth: isCompact ? "36px" : 0,
+                    width: isCompact ? "36px" : undefined,
+                    height: isCompact ? "36px" : undefined,
+                    borderRadius: "50%",
+                    backgroundColor: themeColorMap[colorKey].primary,
+                    border: tempThemeColor === colorKey ? "3px solid #ffffff" : "3px solid transparent",
+                    cursor: "pointer",
+                    transform: tempThemeColor === colorKey ? "scale(1.15)" : "scale(1)",
+                    transition: "transform 0.15s ease, border-color 0.15s ease",
+                    outline: "none",
+                    padding: 0,
+                  }}
+                  title={themeColorMap[colorKey].label}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
+            {[
+              { label: t.showHeader, checked: tempShowHeader, onChange: setTempShowHeader },
+              { label: t.showZone, checked: tempShowZone, onChange: setTempShowZone },
+            ].map((item) => (
+              <div
+                key={item.label}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "8px 12px",
+                  backgroundColor: "#27272a",
+                  borderRadius: "8px",
+                  gap: "12px",
+                }}
+              >
+                <span className={displaySettingsLabelClass()} style={{ color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', flex: 1, minWidth: 0 }}>
+                  {item.label}
+                </span>
+                <Switch checked={item.checked} onCheckedChange={item.onChange} />
+              </div>
+            ))}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "8px 12px",
+                backgroundColor: "#27272a",
+                borderRadius: "8px",
+                gap: "12px",
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span className={displaySettingsLabelClass()} style={{ color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', display: "block" }}>
+                  {t.autoRefresh}
+                </span>
+                <span className={displaySettingsHelperClass()} style={{ color: "#71717a", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
+                  {t.autoRefreshDescription}
+                </span>
+              </div>
+              <Switch checked={tempAutoRefresh} onCheckedChange={setTempAutoRefresh} />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: "16px" }}>
+            <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+              {t.language}
+            </label>
+            <div style={{ display: "flex", gap: "8px" }}>
+              {(["en", "ms"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setTempLanguage(lang)}
+                  className={displaySettingsLabelClass()}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    backgroundColor: tempLanguage === lang ? "#3b82f6" : "#27272a",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#ffffff",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+                  }}
+                >
+                  {lang === "en" ? t.english : t.bahasaMelayu}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <h3 className={cn("font-semibold", displaySettingsSectionTitleClass())} style={{ color: "#ffffff", margin: 0 }}>{t.sectionLocation}</h3>
+            <p className={displaySettingsSectionDescClass()} style={{ color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionLocationDesc}</p>
+          </div>
+
+          <div style={{ marginBottom: "12px" }}>
+            <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+              {t.prayerZone}
+            </label>
+            <ZoneSelector
+              value={tempZone}
+              onChange={setTempZone}
+              className="placeholder-inter [&_[data-slot=input-group-button]]:hover:bg-transparent [&_[data-slot=input-group-button]]:hover:text-current"
+              open={zoneSelectorOpen && !showTestAlertDropdown}
+              onOpenChange={(isOpen) => {
+                setZoneSelectorOpen(isOpen)
+                if (isOpen) setShowTestAlertDropdown(false)
+              }}
+            />
+            <p className={displaySettingsHelperClass()} style={{ color: "#a1a1aa", marginTop: "8px", marginBottom: 0 }}>
+              {t.zoneSource}
+            </p>
+            <button
+              type="button"
+              onClick={handleLocateMe}
+              disabled={isLocating}
+              className={displaySettingsLabelClass()}
+              style={{
+                width: "100%",
+                marginTop: "12px",
+                padding: "10px 16px",
+                backgroundColor: "#2563eb",
+                color: "#ffffff",
+                fontWeight: 500,
+                borderRadius: "8px",
+                border: "none",
+                cursor: isLocating ? "wait" : "pointer",
+                opacity: isLocating ? 0.7 : 1,
+                fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+              }}
+            >
+              {isLocating ? (language === "ms" ? "Mengesan..." : "Detecting...") : t.locateMe}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ flex: "1 1 0%", minWidth: 0, width: isCompact ? "100%" : undefined, display: "flex", flexDirection: "column", gap: "28px" }}>
+        <div>
+          <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <h3 className={cn("font-semibold", displaySettingsSectionTitleClass())} style={{ color: "#ffffff", margin: 0 }}>{t.sectionAlerts}</h3>
+            <p className={displaySettingsSectionDescClass()} style={{ color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAlertsDesc}</p>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <p className={displaySettingsHelperClass()} style={{ color: "#71717a", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertBefore}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", backgroundColor: "#27272a", borderRadius: "8px", gap: "12px" }}>
+              <span className={displaySettingsLabelClass()} style={{ color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', flex: 1, minWidth: 0 }}>
+                {t.testAzanCountdown} ({ALERT_DURATION_MINS.azan_countdown} {t.mins})
+              </span>
+              <Switch
+                checked={tempEnabledAlerts.azan_countdown}
+                onCheckedChange={(checked) => setTempEnabledAlerts((prev) => ({ ...prev, azan_countdown: checked }))}
+                disabled={isAzanPlaying}
+              />
+            </div>
+
+            <p className={displaySettingsHelperClass()} style={{ color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAt}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", backgroundColor: "#27272a", borderRadius: "8px", gap: "12px" }}>
+              <span className={displaySettingsLabelClass()} style={{ color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', flex: 1, minWidth: 0 }}>
+                {t.testAzanNow} ({ALERT_DURATION_MINS.azan_now} {t.mins})
+              </span>
+              <Switch
+                checked={tempEnabledAlerts.azan_now}
+                onCheckedChange={(checked) => setTempEnabledAlerts((prev) => ({ ...prev, azan_now: checked }))}
+                disabled={isAzanPlaying}
+              />
+            </div>
+
+            <p className={displaySettingsHelperClass()} style={{ color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAfter}</p>
+            {(["iqamah", "khutbah_countdown"] as AlertType[]).map((key) => {
+              const alertLabels: Record<AlertType, string> = {
+                azan_countdown: t.testAzanCountdown,
+                azan_now: t.testAzanNow,
+                iqamah: t.testIqamah,
+                khutbah_countdown: t.testKhutbah,
+              }
+              return (
+                <div
+                  key={key}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "8px 12px",
+                    backgroundColor: "#27272a",
+                    borderRadius: "8px",
+                    gap: "12px",
+                  }}
+                >
+                  <span className={displaySettingsLabelClass()} style={{ color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', flex: 1, minWidth: 0 }}>
+                    {alertLabels[key]} ({ALERT_DURATION_MINS[key]} {t.mins})
+                  </span>
+                  <Switch
+                    checked={tempEnabledAlerts[key]}
+                    onCheckedChange={(checked) => setTempEnabledAlerts((prev) => ({ ...prev, [key]: checked }))}
+                    disabled={isAzanPlaying}
+                  />
+                </div>
+              )
+            })}
+          </div>
+
+          <div style={{ marginTop: "16px" }}>
+            <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+              {t.testAlerts}
+            </label>
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => {
+                  if (isAzanPlaying) return
+                  setShowTestAlertDropdown((prev) => {
+                    if (!prev) setZoneSelectorOpen(false)
+                    return !prev
+                  })
+                }}
+                disabled={isAzanPlaying}
+                className={displaySettingsLabelClass()}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  backgroundColor: "#27272a",
+                  border: "1px solid #3f3f46",
+                  borderRadius: "8px",
+                  color: "#ffffff",
+                  textAlign: "left",
+                  cursor: isAzanPlaying ? "not-allowed" : "pointer",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+                  opacity: isAzanPlaying ? 0.6 : 1,
+                }}
+              >
+                <span style={{ fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', fontWeight: 500 }}>{currentTestAlertLabel}</span>
+                <ChevronDown
+                  style={{
+                    width: "16px",
+                    height: "16px",
+                    flexShrink: 0,
+                    transform: showTestAlertDropdown ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s",
+                  }}
+                />
+              </button>
+              {showTestAlertDropdown && (
+                <div
+                  className="scrollbar-hide"
+                  style={{
+                    position: "absolute",
+                    ...(isCompact
+                      ? { top: "100%", left: 0, right: 0, marginTop: "4px" }
+                      : { bottom: "100%", left: 0, right: 0, marginBottom: "4px" }),
+                    backgroundColor: "#27272a",
+                    borderRadius: "8px",
+                    border: "1px solid #3f3f46",
+                    maxHeight: "200px",
+                    overflowY: "auto",
+                    zIndex: 100,
+                  }}
+                >
+                  {testAlertOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        if (isAzanPlaying) return
+                        setTestMode(option.value === "none" ? null : option.value)
+                        setShowTestAlertDropdown(false)
+                      }}
+                      disabled={isAzanPlaying}
+                      className={displaySettingsLabelClass()}
+                      style={{
+                        width: "100%",
+                        padding: "12px",
+                        backgroundColor: (testMode || "none") === option.value ? "#3b82f6" : "transparent",
+                        border: "none",
+                        color: "#ffffff",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+                        fontWeight: 400,
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className={displaySettingsLabelClass()} style={{ color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
+            {t.timeFormat}
+          </label>
+          <div style={{ display: "flex", gap: "8px" }}>
+            {(["12h", "24h"] as const).map((fmt) => (
+              <button
+                key={fmt}
+                onClick={() => setTempTimeFormat(fmt)}
+                className={displaySettingsLabelClass()}
+                style={{
+                  flex: 1,
+                  padding: "12px",
+                  backgroundColor: tempTimeFormat === fmt ? "#3b82f6" : "#27272a",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#ffffff",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+                }}
+              >
+                {fmt === "12h" ? t.timeFormat12h : t.timeFormat24h}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <h3 className={cn("font-semibold", displaySettingsSectionTitleClass())} style={{ color: "#ffffff", margin: 0 }}>{t.sectionAudio}</h3>
+            <p className={displaySettingsSectionDescClass()} style={{ color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAudioDesc}</p>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", backgroundColor: "#27272a", borderRadius: "8px", marginBottom: "12px", gap: "12px" }}>
+            <span className={displaySettingsLabelClass()} style={{ color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', flex: 1, minWidth: 0 }}>
+              {t.azanSound}
+            </span>
+            <Switch
+              checked={tempAzanSoundEnabled}
+              onCheckedChange={setTempAzanSoundEnabled}
+              disabled={isAzanPlaying}
+            />
+          </div>
+          <button
+            onClick={() => {
+              if (isAzanPlaying) return
+              if (isTestingAzan) {
+                stopAzanSound()
+              } else {
+                setIsTestingAzan(true)
+                playAzanSound()
+              }
+            }}
+            disabled={isAzanPlaying}
+            className={displaySettingsLabelClass()}
+            style={{
+              width: "100%",
+              padding: "10px 16px",
+              backgroundColor: isTestingAzan ? "#ef4444" : "#2563eb",
+              border: "none",
+              borderRadius: "8px",
+              color: "#ffffff",
+              fontWeight: 500,
+              cursor: isAzanPlaying ? "not-allowed" : "pointer",
+              fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+              transition: "background-color 0.15s ease",
+              opacity: isAzanPlaying ? 0.6 : 1,
+            }}
+          >
+            {isTestingAzan ? t.stopAzan : t.playAzan}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div
@@ -1059,63 +1540,45 @@ export function DisplayClient() {
             right: 0,
             zIndex: 9998,
             backgroundColor: "rgba(37, 99, 235, 0.95)",
-            padding: "12px 24px",
+            padding: isCompact ? "12px 16px" : "12px 24px",
             display: "flex",
+            flexDirection: isCompact ? "column" : "row",
             alignItems: "center",
             justifyContent: "center",
-            gap: "16px",
+            gap: isCompact ? "10px" : "16px",
           }}
         >
           <span
+            className={displaySettingsLabelClass()}
             style={{
               color: "#ffffff",
-              fontSize: "14px",
               fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+              textAlign: isCompact ? "center" : "left",
             }}
           >
             {t.azanBannerText}
           </span>
-          <button
-            onClick={() => {
-              setShowAzanBanner(false)
-              try { localStorage.setItem("waktu-display-azan-banner-dismissed", "true") } catch {}
-              openSettings()
-            }}
-            style={{
-              padding: "8px 20px",
-              backgroundColor: "transparent",
-              color: "#ffffff",
-              border: "1px solid #ffffff",
-              borderRadius: "6px",
-              fontSize: "13px",
-              fontWeight: 600,
-              cursor: "pointer",
-              fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-              whiteSpace: "nowrap",
-            }}
-          >
-            {t.openDisplaySettings}
-          </button>
-          <button
-            onClick={() => {
-              setShowAzanBanner(false)
-              try { localStorage.setItem("waktu-display-azan-banner-dismissed", "true") } catch {}
-            }}
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "transparent",
-              color: "#ffffff",
-              border: "1px solid #ffffff",
-              borderRadius: "6px",
-              fontSize: "13px",
-              fontWeight: 500,
-              cursor: "pointer",
-              fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-              whiteSpace: "nowrap",
-            }}
-          >
-            {t.dismiss}
-          </button>
+          <div className="flex shrink-0 flex-row items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => {
+                setShowAzanBanner(false)
+                try { localStorage.setItem("waktu-display-azan-banner-dismissed", "true") } catch {}
+                openSettings()
+              }}
+            >
+              {t.openDisplaySettings}
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                setShowAzanBanner(false)
+                try { localStorage.setItem("waktu-display-azan-banner-dismissed", "true") } catch {}
+              }}
+            >
+              {t.dismiss}
+            </Button>
+          </div>
         </div>
       )}
       <div
@@ -1133,42 +1596,55 @@ export function DisplayClient() {
         <div
           ref={contentRef}
           style={{
-            width: "1920px",
-            height: "1080px",
-            minHeight: "1080px",
-            transform: `scale(${scale})`,
-            transformOrigin: "center center",
+            ...(isCompact
+              ? {
+                  width: "100%",
+                  height: "100%",
+                  minHeight: 0,
+                  transform: "none",
+                }
+              : {
+                  width: "1920px",
+                  height: "1080px",
+                  minHeight: "1080px",
+                  transform: `scale(${scale})`,
+                  transformOrigin: "center center",
+                }),
             backgroundColor: "#18181b",
             padding: 0,
             display: "flex",
             flexDirection: "column",
             boxSizing: "border-box",
             fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+            overflow: isCompact ? "hidden" : undefined,
           }}
         >
       {showHeader && (
         <div
           style={{
             display: "flex",
+            flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "24px",
+            marginBottom: isCompact ? "12px" : "24px",
             flexShrink: 0,
+            gap: isCompact ? "12px" : undefined,
+            width: "100%",
           }}
         >
-          <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "8px" }}>
-            <p className="metric-number" style={{ fontSize: "64px", color: "#ffffff", lineHeight: 1.2 }} suppressHydrationWarning>
+          <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: isCompact ? "4px" : "8px", minWidth: 0, flex: 1 }}>
+            <p className={cn("metric-number text-white leading-tight", displayHeaderDateClass())} suppressHydrationWarning>
               {formatGregorianDate(language)}
             </p>
-            <p className="metric-number" style={{ fontSize: "64px", color: "#ffffff", lineHeight: 1.2 }} suppressHydrationWarning>
+            <p className={cn("metric-number text-white leading-tight", displayHeaderDateClass())} suppressHydrationWarning>
               {hijriDate}
             </p>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <h1 style={{ fontSize: "68px", fontWeight: 700, color: themeColorMap[themeColor].primary, lineHeight: 1.2 }}>
+          <div style={{ textAlign: "right", minWidth: 0, flexShrink: 0 }}>
+            <h1 className={cn("font-bold leading-tight", displayHeaderTitleClass())} style={{ color: themeColorMap[themeColor].primary }}>
               {customTitle || "Waktu+"}
             </h1>
-            <p className="metric-number" style={{ fontSize: "68px", color: "#ffffff", lineHeight: 1.2 }} suppressHydrationWarning>
+            <p className={cn("metric-number text-white leading-tight", displayHeaderTitleClass())} suppressHydrationWarning>
               {formatTimeDisplay(currentTime, timeFormat)}
             </p>
           </div>
@@ -1180,8 +1656,8 @@ export function DisplayClient() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: hasAlert ? "24px" : "32px",
+          gridTemplateColumns: isCompact ? "repeat(2, 1fr)" : "repeat(3, 1fr)",
+          gap: isCompact ? (hasAlert ? "8px" : "12px") : (hasAlert ? "24px" : "32px"),
           flex: 1,
           minHeight: 0,
           overflow: "hidden",
@@ -1192,7 +1668,6 @@ export function DisplayClient() {
           const isNext = key === nextPrayerKey
           const prayerName = getPrayerName(key, language, isFriday && key === "zohor")
           const isSyuruk = key === "syuruk"
-          const isSunriseCountdown = alertState.type === "sunrise_countdown" && isSyuruk
 
           const showCountdown = isNext && (
             !isWithin15Mins ||
@@ -1201,10 +1676,9 @@ export function DisplayClient() {
             (alertState.type === "sunrise_countdown" && !isSyuruk)
           )
 
-          const cardScale = hasAlert ? 0.85 : 1
-          const iconSize = hasAlert ? 64 : 80
-          const nameSize = Math.round(120 * cardScale)
-          const timeSize = Math.round(118 * cardScale)
+          const iconSize = isCompact
+            ? (hasAlert ? "clamp(24px, 5vw, 36px)" : "clamp(28px, 6vw, 44px)")
+            : (hasAlert ? 64 : 80)
 
           return (
             <div
@@ -1213,27 +1687,27 @@ export function DisplayClient() {
                 backgroundColor: isNext ? undefined : "transparent",
                 background: isNext ? `linear-gradient(135deg, ${themeColorMap[themeColor].primary} 0%, ${themeColorMap[themeColor].gradient} 100%)` : undefined,
                 borderRadius: "8px",
-                padding: hasAlert ? "12px" : "16px",
+                padding: isCompact ? (hasAlert ? "8px" : "10px") : (hasAlert ? "12px" : "16px"),
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                minHeight: hasAlert ? "160px" : "200px",
+                minHeight: isCompact ? (hasAlert ? "100px" : "120px") : (hasAlert ? "160px" : "200px"),
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: hasAlert ? "8px" : "12px", marginBottom: "4px", lineHeight: 1.2 }}>
-                <Icon style={{ width: iconSize, height: iconSize, color: "#ffffff" }} />
-                <span style={{ fontSize: nameSize, fontWeight: 600, color: "#ffffff", lineHeight: 1.2 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: isCompact ? "6px" : (hasAlert ? "8px" : "12px"), marginBottom: "4px", lineHeight: 1.2 }}>
+                <Icon style={{ width: iconSize, height: iconSize, color: "#ffffff", flexShrink: 0 }} />
+                <span className={cn("font-semibold text-white leading-tight", displayPrayerNameClass(hasAlert))}>
                   {prayerName}
                 </span>
               </div>
-              <span className="metric-number" style={{ fontSize: timeSize, color: "#ffffff", lineHeight: 1.2 }}>
+              <span className={cn("metric-number text-white leading-tight", displayPrayerTimeClass(hasAlert))}>
                 {formatPrayerTime(prayerTimes[index], timeFormat)}
               </span>
               <div
                 style={{
-                  marginTop: hasAlert ? "4px" : "8px",
-                  padding: hasAlert ? "8px 16px" : "12px 24px",
+                  marginTop: isCompact ? "2px" : (hasAlert ? "4px" : "8px"),
+                  padding: isCompact ? "4px 8px" : (hasAlert ? "8px 16px" : "12px 24px"),
                   width: "fit-content",
                   maxWidth: "100%",
                   boxSizing: "border-box",
@@ -1243,33 +1717,29 @@ export function DisplayClient() {
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "8px",
+                  gap: "4px",
                   marginLeft: "auto",
                   marginRight: "auto",
                 }}
               >
                 <span
+                  className={cn("font-semibold leading-none", displayCountdownClass(hasAlert))}
                   style={{
-                    fontSize: hasAlert ? "clamp(14px, 2vw, 22px)" : "clamp(18px, 2.5vw, 28px)",
-                    fontWeight: 600,
                     color: "rgba(255,255,255,0.9)",
-                    whiteSpace: "nowrap",
+                    whiteSpace: isCompact ? "normal" : "nowrap",
                     flexShrink: 0,
-                    lineHeight: 1,
                     fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
                   }}
                 >
                   {isSyuruk ? t.sunriseIn : t.begins}
                 </span>
                 <span
-                  className="metric-number"
+                  className={cn("metric-number leading-none", displayCountdownClass(hasAlert))}
                   style={{
-                    fontSize: hasAlert ? "clamp(14px, 2vw, 22px)" : "clamp(18px, 2.5vw, 28px)",
                     color: "rgba(255,255,255,0.9)",
-                    whiteSpace: "nowrap",
+                    whiteSpace: isCompact ? "normal" : "nowrap",
                     textAlign: "center",
                     flexShrink: 0,
-                    lineHeight: 1,
                   }}
                 >
                   {countdown}
@@ -1282,17 +1752,16 @@ export function DisplayClient() {
 
       {(!showHeader || (showZone && zoneInfo)) && (
         <div
+          className={cn("font-medium", displayFooterClass(hasAlert))}
           style={{
             textAlign: "center",
             marginTop: "auto",
-            paddingTop: hasAlert ? "16px" : "24px",
+            paddingTop: isCompact ? (hasAlert ? "8px" : "12px") : (hasAlert ? "16px" : "24px"),
             flexShrink: 0,
-            fontSize: hasAlert ? "20px" : "24px",
-            fontWeight: 500,
             color: "rgba(255,255,255,0.7)",
             display: "flex",
             flexDirection: "column",
-            gap: "8px",
+            gap: isCompact ? "4px" : "8px",
           }}
         >
           {showZone && zoneInfo && (
@@ -1301,12 +1770,12 @@ export function DisplayClient() {
             </p>
           )}
           {!showHeader && (
-            <p style={{ margin: 0, fontWeight: 600, color: "#ffffff" }}>
+            <p style={{ margin: 0, fontWeight: 600, color: "#ffffff", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: isCompact ? "4px 8px" : undefined }}>
               <span style={{ fontWeight: 600 }} suppressHydrationWarning>{formatGregorianDate(language)}</span>
-              <span style={{ fontWeight: 600 }}> · </span>
+              {!isCompact && <span style={{ fontWeight: 600 }}> · </span>}
               <span style={{ fontWeight: 600 }} suppressHydrationWarning>{hijriDate}</span>
-              <span style={{ fontWeight: 600 }}> · </span>
-              <span className="metric-number" style={{ display: "inline-block", minWidth: timeFormat === "12h" ? "7.5em" : "5.5em", textAlign: "left" }} suppressHydrationWarning>
+              {!isCompact && <span style={{ fontWeight: 600 }}> · </span>}
+              <span className="metric-number" style={{ display: "inline-block", minWidth: isCompact ? undefined : (timeFormat === "12h" ? "7.5em" : "5.5em"), textAlign: isCompact ? "center" : "left" }} suppressHydrationWarning>
                 {formatTimeDisplay(currentTime, timeFormat)}
               </span>
             </p>
@@ -1321,12 +1790,12 @@ export function DisplayClient() {
           title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
           style={{
             position: "fixed",
-            bottom: "24px",
-            right: "80px",
+            bottom: fabBottom,
+            right: isCompact ? "64px" : "80px",
             backgroundColor: "#27272a",
             border: "none",
             borderRadius: "8px",
-            padding: "12px",
+            padding: isCompact ? "10px" : "12px",
             cursor: "pointer",
             opacity: settingsVisible ? 1 : 0,
             transition: "opacity 0.3s ease",
@@ -1335,8 +1804,8 @@ export function DisplayClient() {
           }}
         >
           {isFullscreen
-            ? <Shrink style={{ width: "24px", height: "24px", color: "#ffffff" }} />
-            : <Expand style={{ width: "24px", height: "24px", color: "#ffffff" }} />}
+            ? <Shrink style={{ width: isCompact ? "20px" : "24px", height: isCompact ? "20px" : "24px", color: "#ffffff" }} />
+            : <Expand style={{ width: isCompact ? "20px" : "24px", height: isCompact ? "20px" : "24px", color: "#ffffff" }} />}
         </button>
       )}
       <button
@@ -1344,44 +1813,35 @@ export function DisplayClient() {
         title={t.settings}
         style={{
           position: "fixed",
-          bottom: "24px",
-          right: "24px",
+          bottom: fabBottom,
+          right: isCompact ? "16px" : "24px",
           backgroundColor: "#27272a",
           border: "none",
           borderRadius: "8px",
-          padding: "12px",
+          padding: isCompact ? "10px" : "12px",
           cursor: "pointer",
           opacity: settingsVisible ? 1 : 0,
           transition: "opacity 0.3s ease",
           pointerEvents: settingsVisible ? "auto" : "none",
+          zIndex: 1000,
         }}
       >
-        <Settings style={{ width: "24px", height: "24px", color: "#ffffff" }} />
+        <Settings style={{ width: isCompact ? "20px" : "24px", height: isCompact ? "20px" : "24px", color: "#ffffff" }} />
       </button>
 
-      {showSettings && (
+      {showSettings && !isCompact && (
         <div
           style={{
             position: "fixed",
             inset: 0,
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
             backgroundColor: "rgba(0,0,0,0.8)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 9999,
-            paddingLeft: viewportWidth < 1024 ? "12px" : 0,
-            paddingRight: viewportWidth < 1024 ? "12px" : 0,
             boxSizing: "border-box",
           }}
-          onClick={() => {
-            setShowSettings(false)
-            setShowTestAlertDropdown(false)
-            setZoneSelectorOpen(false)
-          }}
+          onClick={closeSettings}
         >
           <div
             className="scrollbar-hide"
@@ -1390,565 +1850,62 @@ export function DisplayClient() {
               borderRadius: "8px",
               padding: "24px",
               width: "100%",
-              maxWidth: viewportWidth >= 768 ? "900px" : "400px",
+              maxWidth: "900px",
               maxHeight: "90vh",
               overflowY: "auto",
               position: "relative",
               fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-              height: viewportWidth >= 768 ? "auto" : "auto",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ fontSize: "24px", fontWeight: 600, color: "#ffffff", marginBottom: "24px" }}>{t.settings}</h2>
-
-            <div
-              style={{
-                display: "flex",
-                flexDirection: viewportWidth >= 768 ? "row" : "column",
-                gap: "24px",
-                marginBottom: "24px",
-                alignItems: "flex-start",
-              }}
-            >
-              {/* Left: Display Identity + Location & Prayer Time */}
-              <div style={{ flex: "1 1 0%", minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined, display: "flex", flexDirection: "column", gap: "24px" }}>
-
-                {/* Display Identity */}
-                <div>
-                  <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0 }}>{t.sectionDisplayIdentity}</h3>
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionDisplayIdentityDesc}</p>
-                  </div>
-
-                  <div style={{ marginBottom: "16px" }}>
-                    <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                      {t.customTitle}
-                    </label>
-                    <input
-                      type="text"
-                      value={tempCustomTitle}
-                      onChange={(e) => setTempCustomTitle(e.target.value)}
-                      placeholder={t.customTitlePlaceholder}
-                      className="placeholder-inter"
-                      style={{
-                        width: "100%",
-                        padding: "12px",
-                        backgroundColor: "#27272a",
-                        border: "none",
-                        borderRadius: "8px",
-                        color: "#ffffff",
-                        fontSize: "14px",
-                        outline: "none",
-                        boxSizing: "border-box",
-                        fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: "16px" }}>
-                    <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                      {t.themeColor}
-                    </label>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      {themeColorKeys.map((colorKey) => (
-                        <button
-                          key={colorKey}
-                          onClick={() => setTempThemeColor(colorKey)}
-                          style={{
-                            flex: "1 1 0%",
-                            aspectRatio: "1",
-                            minWidth: 0,
-                            borderRadius: "50%",
-                            backgroundColor: themeColorMap[colorKey].primary,
-                            border: tempThemeColor === colorKey ? "3px solid #ffffff" : "3px solid transparent",
-                            cursor: "pointer",
-                            transform: tempThemeColor === colorKey ? "scale(1.15)" : "scale(1)",
-                            transition: "transform 0.15s ease, border-color 0.15s ease",
-                            outline: "none",
-                            padding: 0,
-                          }}
-                          title={themeColorMap[colorKey].label}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "8px 12px",
-                        backgroundColor: "#27272a",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
-                        {t.showHeader}
-                      </span>
-                      <Switch
-                        checked={tempShowHeader}
-                        onCheckedChange={setTempShowHeader}
-                      />
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "8px 12px",
-                        backgroundColor: "#27272a",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
-                        {t.showZone}
-                      </span>
-                      <Switch
-                        checked={tempShowZone}
-                        onCheckedChange={setTempShowZone}
-                      />
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "8px 12px",
-                        backgroundColor: "#27272a",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <div>
-                        <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', display: "block" }}>
-                          {t.autoRefresh}
-                        </span>
-                        <span style={{ fontSize: "11px", color: "#71717a", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
-                          {t.autoRefreshDescription}
-                        </span>
-                      </div>
-                      <Switch
-                        checked={tempAutoRefresh}
-                        onCheckedChange={setTempAutoRefresh}
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: "16px" }}>
-                    <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                      {t.language}
-                    </label>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button
-                        onClick={() => setTempLanguage("en")}
-                        style={{
-                          flex: 1,
-                          padding: "12px",
-                          backgroundColor: tempLanguage === "en" ? "#3b82f6" : "#27272a",
-                          border: "none",
-                          borderRadius: "8px",
-                          color: "#ffffff",
-                          fontSize: "14px",
-                          fontWeight: 500,
-                          cursor: "pointer",
-                          fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-                        }}
-                      >
-                        {t.english}
-                      </button>
-                      <button
-                        onClick={() => setTempLanguage("ms")}
-                        style={{
-                          flex: 1,
-                          padding: "12px",
-                          backgroundColor: tempLanguage === "ms" ? "#3b82f6" : "#27272a",
-                          border: "none",
-                          borderRadius: "8px",
-                          color: "#ffffff",
-                          fontSize: "14px",
-                          fontWeight: 500,
-                          cursor: "pointer",
-                          fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-                        }}
-                      >
-                        {t.bahasaMelayu}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Location & Prayer Time */}
-                <div>
-                  <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0 }}>{t.sectionLocation}</h3>
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionLocationDesc}</p>
-                  </div>
-
-                  <div style={{ marginBottom: "12px" }}>
-                    <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                      {t.prayerZone}
-                    </label>
-                    <ZoneSelector
-                      value={tempZone}
-                      onChange={setTempZone}
-                      className="placeholder-inter [&_[data-slot=input-group-button]]:hover:bg-transparent [&_[data-slot=input-group-button]]:hover:text-current"
-                      open={zoneSelectorOpen && !showTestAlertDropdown}
-                      onOpenChange={(isOpen) => {
-                        setZoneSelectorOpen(isOpen)
-                        if (isOpen) setShowTestAlertDropdown(false)
-                      }}
-                    />
-                    <p style={{ fontSize: "12px", color: "#a1a1aa", marginTop: "8px", marginBottom: 0 }}>
-                      {t.zoneSource}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleLocateMe}
-                      disabled={isLocating}
-                      style={{
-                        width: "100%",
-                        marginTop: "12px",
-                        padding: "10px 16px",
-                        backgroundColor: "#2563eb",
-                        color: "#ffffff",
-                        fontWeight: 500,
-                        fontSize: "14px",
-                        borderRadius: "8px",
-                        border: "none",
-                        cursor: isLocating ? "wait" : "pointer",
-                        opacity: isLocating ? 0.7 : 1,
-                        fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-                      }}
-                    >
-                      {isLocating ? (language === "ms" ? "Mengesan..." : "Detecting...") : t.locateMe}
-                    </button>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Right: Alerts & Behaviour + Audio */}
-              <div style={{ flex: "1 1 0%", minWidth: 0, width: viewportWidth < 768 ? "100%" : undefined, display: "flex", flexDirection: "column", gap: "28px" }}>
-
-                {/* Alerts & Behaviour */}
-                <div>
-                  <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0 }}>{t.sectionAlerts}</h3>
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAlertsDesc}</p>
-                  </div>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: 0, fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertBefore}</p>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "8px 12px",
-                        backgroundColor: "#27272a",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
-                        {t.testAzanCountdown} ({ALERT_DURATION_MINS.azan_countdown} {t.mins})
-                      </span>
-                      <Switch
-                        checked={tempEnabledAlerts.azan_countdown}
-                        onCheckedChange={(checked) => setTempEnabledAlerts((prev) => ({ ...prev, azan_countdown: checked }))}
-                        disabled={isAzanPlaying}
-                      />
-                    </div>
-
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAt}</p>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "8px 12px",
-                        backgroundColor: "#27272a",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
-                        {t.testAzanNow} ({ALERT_DURATION_MINS.azan_now} {t.mins})
-                      </span>
-                      <Switch
-                        checked={tempEnabledAlerts.azan_now}
-                        onCheckedChange={(checked) => setTempEnabledAlerts((prev) => ({ ...prev, azan_now: checked }))}
-                        disabled={isAzanPlaying}
-                      />
-                    </div>
-
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.alertAfter}</p>
-                    {(["iqamah", "khutbah_countdown"] as AlertType[]).map((key) => {
-                      const alertLabels: Record<AlertType, string> = {
-                        azan_countdown: t.testAzanCountdown,
-                        azan_now: t.testAzanNow,
-                        iqamah: t.testIqamah,
-                        khutbah_countdown: t.testKhutbah,
-                      }
-                      return (
-                        <div
-                          key={key}
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            padding: "8px 12px",
-                            backgroundColor: "#27272a",
-                            borderRadius: "8px",
-                          }}
-                        >
-                          <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
-                            {alertLabels[key]} ({ALERT_DURATION_MINS[key]} {t.mins})
-                          </span>
-                          <Switch
-                            checked={tempEnabledAlerts[key]}
-                            onCheckedChange={(checked) => setTempEnabledAlerts((prev) => ({ ...prev, [key]: checked }))}
-                            disabled={isAzanPlaying}
-                          />
-                        </div>
-                      )
-                    })}
-                  </div>
-
-                  <div style={{ marginTop: "16px" }}>
-                    <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                      {t.testAlerts}
-                    </label>
-                    <div style={{ position: "relative" }}>
-                      <button
-                        onClick={() => {
-                          if (isAzanPlaying) return
-                          setShowTestAlertDropdown((prev) => {
-                            if (!prev) setZoneSelectorOpen(false)
-                            return !prev
-                          })
-                        }}
-                        disabled={isAzanPlaying}
-                        style={{
-                          width: "100%",
-                          padding: "12px",
-                          backgroundColor: "#27272a",
-                          border: "1px solid #3f3f46",
-                          borderRadius: "8px",
-                          color: "#ffffff",
-                          fontSize: "14px",
-                          textAlign: "left",
-                          cursor: isAzanPlaying ? "not-allowed" : "pointer",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-                          opacity: isAzanPlaying ? 0.6 : 1,
-                        }}
-                      >
-                        <span style={{ fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', fontWeight: 500 }}>{currentTestAlertLabel}</span>
-                        <ChevronDown
-                          style={{
-                            width: "16px",
-                            height: "16px",
-                            flexShrink: 0,
-                            transform: showTestAlertDropdown ? "rotate(180deg)" : "rotate(0deg)",
-                            transition: "transform 0.2s",
-                          }}
-                        />
-                      </button>
-                      {showTestAlertDropdown && (
-                        <div
-                          className="scrollbar-hide"
-                          style={{
-                            position: "absolute",
-                            bottom: "100%",
-                            left: 0,
-                            right: 0,
-                            backgroundColor: "#27272a",
-                            borderRadius: "8px",
-                            border: "1px solid #3f3f46",
-                            marginBottom: "4px",
-                            maxHeight: "200px",
-                            overflowY: "auto",
-                            zIndex: 100,
-                          }}
-                        >
-                          {testAlertOptions.map((option) => (
-                            <button
-                              key={option.value}
-                              onClick={() => {
-                                if (isAzanPlaying) return
-                                setTestMode(option.value === "none" ? null : option.value)
-                                setShowTestAlertDropdown(false)
-                              }}
-                              disabled={isAzanPlaying}
-                              style={{
-                                width: "100%",
-                                padding: "12px",
-                                backgroundColor: (testMode || "none") === option.value ? "#3b82f6" : "transparent",
-                                border: "none",
-                                color: "#ffffff",
-                                fontSize: "14px",
-                                textAlign: "left",
-                                cursor: "pointer",
-                                fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-                                fontWeight: 400,
-                              }}
-                            >
-                              {option.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Time Format */}
-                <div>
-                  <label style={{ fontSize: "14px", color: "#a1a1aa", display: "block", marginBottom: "8px" }}>
-                    {t.timeFormat}
-                  </label>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <button
-                      onClick={() => setTempTimeFormat("12h")}
-                      style={{
-                        flex: 1,
-                        padding: "12px",
-                        backgroundColor: tempTimeFormat === "12h" ? "#3b82f6" : "#27272a",
-                        border: "none",
-                        borderRadius: "8px",
-                        color: "#ffffff",
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        cursor: "pointer",
-                        fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-                      }}
-                    >
-                      {t.timeFormat12h}
-                    </button>
-                    <button
-                      onClick={() => setTempTimeFormat("24h")}
-                      style={{
-                        flex: 1,
-                        padding: "12px",
-                        backgroundColor: tempTimeFormat === "24h" ? "#3b82f6" : "#27272a",
-                        border: "none",
-                        borderRadius: "8px",
-                        color: "#ffffff",
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        cursor: "pointer",
-                        fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-                      }}
-                    >
-                      {t.timeFormat24h}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Audio */}
-                <div>
-                  <div style={{ marginBottom: "16px", minHeight: viewportWidth < 768 ? "60px" : undefined, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#ffffff", margin: 0 }}>{t.sectionAudio}</h3>
-                    <p style={{ fontSize: "12px", color: "#71717a", margin: "4px 0 0 0", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>{t.sectionAudioDesc}</p>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "8px 12px",
-                      backgroundColor: "#27272a",
-                      borderRadius: "8px",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    <span style={{ fontSize: "14px", color: "#ffffff", fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
-                      {t.azanSound}
-                    </span>
-                    <Switch
-                      checked={tempAzanSoundEnabled}
-                      onCheckedChange={setTempAzanSoundEnabled}
-                      disabled={isAzanPlaying}
-                    />
-                  </div>
-                  <button
-                    onClick={() => {
-                      if (isAzanPlaying) return
-                      if (isTestingAzan) {
-                        stopAzanSound()
-                      } else {
-                        setIsTestingAzan(true)
-                        playAzanSound()
-                      }
-                    }}
-                    disabled={isAzanPlaying}
-                    style={{
-                      width: "100%",
-                      padding: "10px 16px",
-                      backgroundColor: isTestingAzan ? "#ef4444" : "#2563eb",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#ffffff",
-                      fontSize: "14px",
-                      fontWeight: 500,
-                      cursor: isAzanPlaying ? "not-allowed" : "pointer",
-                      fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-                      transition: "background-color 0.15s ease",
-                      opacity: isAzanPlaying ? 0.6 : 1,
-                    }}
-                  >
-                    {isTestingAzan ? t.stopAzan : t.playAzan}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <button
-                onClick={() => saveSettings()}
-                disabled={!hasSettingsChanged}
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  backgroundColor: hasSettingsChanged ? "#3b82f6" : "#27272a",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#ffffff",
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  cursor: hasSettingsChanged ? "pointer" : "not-allowed",
-                  opacity: hasSettingsChanged ? 1 : 0.5,
-                  fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
-                  transition: "background-color 0.15s ease, opacity 0.15s ease",
-                }}
-              >
-                {t.save}
-              </button>
-            </div>
+            <h2 className={cn("font-semibold", displaySettingsTitleClass())} style={{ color: "#ffffff", marginBottom: "24px" }}>{t.settings}</h2>
+            <div style={{ marginBottom: "24px" }}>{renderSettingsBody()}</div>
+            {renderSaveButton()}
           </div>
         </div>
       )}
 
-      <Drawer open={isMobileDrawerOpen} onOpenChange={setIsMobileDrawerOpen}>
-        <DrawerContent>
-          <DrawerHeader className="text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-500/10">
-              <Monitor className="h-6 w-6 text-yellow-500" />
+      <Drawer
+        open={showSettings && isCompact}
+        onOpenChange={(open) => {
+          if (!open) closeSettings()
+        }}
+      >
+        <DrawerContent
+          className="flex max-h-[92vh] flex-col border-zinc-800 bg-[#18181b] text-white"
+          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        >
+          <DrawerHeader className="sticky top-0 z-10 shrink-0 border-b border-zinc-800 bg-[#18181b] px-4 pb-3 pt-2 text-left">
+            <div className="flex items-center justify-between gap-3">
+              <DrawerTitle className="text-lg font-semibold text-white">{t.settings}</DrawerTitle>
+              <button
+                type="button"
+                onClick={closeSettings}
+                aria-label={t.dismiss}
+                style={{
+                  backgroundColor: "#27272a",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "8px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <X style={{ width: "18px", height: "18px", color: "#ffffff" }} />
+              </button>
             </div>
-            <DrawerTitle>{t.mobileWarningTitle}</DrawerTitle>
-            <DrawerDescription>{t.mobileWarningDescription}</DrawerDescription>
           </DrawerHeader>
-          <DrawerFooter>
-            <Button onClick={() => router.push("/")}>{t.visitHomepage}</Button>
-            <DrawerClose asChild>
-              <Button variant="outline">{t.dismiss}</Button>
-            </DrawerClose>
+          <div className="scrollbar-hide flex-1 overflow-y-auto px-4 py-4">
+            {renderSettingsBody()}
+          </div>
+          <DrawerFooter className="sticky bottom-0 shrink-0 border-t border-zinc-800 bg-[#18181b] px-4 pt-3">
+            {renderSaveButton()}
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
     </div>
   )
 }

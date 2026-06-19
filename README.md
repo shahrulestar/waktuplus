@@ -1,53 +1,73 @@
-# Waktu+
+# Waktu+ - Prayer Times Display
 
-Prayer times, Al-Quran & Islamic calendar for Malaysia. Free, no ads, no signup.
+![Waktu+ - Prayer Times Display](./public/display.png)
 
-## Development
+**Waktu+** is a free full-screen prayer times display for mosques and suraus in Malaysia. It is designed for TVs, monitors, and browsers where clear, always-on prayer information matters.
 
-```bash
-pnpm install
-pnpm dev
-```
+Free to use. No ads. No signup.
 
-## Deploy to Cloudflare Workers
+**Website:** [waktu.shahrulestar.com](https://waktu.shahrulestar.com)
 
-### Prerequisites
+## About
 
-- [Cloudflare account](https://dash.cloudflare.com/)
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) (installed via `pnpm install`)
+Waktu+ shows today's prayer times in a full-screen display layout using JAKIM (Jabatan Kemajuan Islam Malaysia) data, built for distance viewing in masjids and suraus. The display stays readable at a glance: large clock, prayer schedule, next-prayer countdown, and optional alerts for azan, iqamah, and Friday khutbah.
 
-### Environment variables
+The display is bilingual (English and Bahasa Malaysia) and supports all Malaysian prayer zones.
 
-Create `.dev.vars` for local preview (optional):
+## Features
 
-```
-NEXTJS_ENV=development
-```
+### Prayer times display
+- Real-time clock synced to server time (Asia/Kuala_Lumpur)
+- Today's six prayer times: Subuh, Syuruk, Zohor/Jumaah, Asar, Maghrib, Isyak
+- Countdown to the next prayer
+- Hijri and Gregorian dates (Hijri date switches at Maghrib)
 
-For Cloudflare Web Analytics, set `NEXT_PUBLIC_CF_BEACON_TOKEN` in your Cloudflare Pages/Workers env or `.dev.vars`. Get the token from [Cloudflare Web Analytics](https://dash.cloudflare.com/?to=/:account/web-analytics).
+### Mosque & surau alerts
+- Azan countdown overlay
+- Azan-now overlay
+- Iqamah countdown (configurable)
+- Friday/Jumaah khutbah countdown
+- Sunrise (Syuruk) countdown
+- Optional azan audio
 
-### Build and deploy
+### Display settings
+- Prayer zone selection (all Malaysian zones)
+- GPS-based zone detection
+- Custom display title
+- Theme color
+- 12-hour or 24-hour time format
+- Toggle header and zone label
+- Enable or disable individual alert types
+- Fullscreen mode (remembered in the browser)
+- Auto-refresh (hourly reload)
+- Test alert modes for setup and troubleshooting
 
-```bash
-pnpm install
-pnpm run deploy
-```
+### Built for screens
+- Full-screen layout scaled from a 1920×1080 design
+- Works on desktop browsers, TVs, and large monitors
+- Progressive Web App (PWA) support for kiosk-style use
+- Mobile warning when opened on small screens
 
-If your Cloudflare build pipeline runs `pnpm run build`, it is now OpenNext-compatible and generates `.open-next/*` before deploy.
+## Localization
 
-Or build and preview locally:
+- **English** and **Bahasa Malaysia**
+- Localized prayer names, UI labels, and date formatting
 
-```bash
-pnpm run preview
-```
+## Contact
 
-Then open the URL shown (e.g. `http://localhost:8787`).
+Questions, feedback, or bug reports:
 
-**Note:** `pnpm run preview` may fail on Windows due to Wrangler path handling. Use WSL for local preview, or deploy to Cloudflare and test there.
+- **Email:** [hello@shahrulestar.com](mailto:hello@shahrulestar.com)
+- **Threads:** [@shahrulestar](https://www.threads.com/@shahrulestar)
 
-### API endpoints
+For security vulnerabilities, see the [Security policy](SECURITY.md).
 
-- `GET /api/locate?lat=&lng=` – Get zone from GPS
-- `GET /api/prayer?zone=WLY01&year=&month=` – Prayer times
-- `GET /api/quran?endpoint=surah/1` – Quran data proxy
-- `GET /api/time` – Server time (Asia/Kuala_Lumpur)
+## Community
+
+- [Contributing](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

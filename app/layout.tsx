@@ -2,7 +2,9 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import Script from "next/script"
 import { Inter, Inter_Tight } from "next/font/google"
+import { JsonLd, getSiteJsonLd } from "@/components/json-ld"
 import { AppProvider } from "@/lib/store"
+import { OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site"
 import { UpdateBanner } from "@/components/UpdateBanner"
 import "./globals.css"
 
@@ -20,29 +22,26 @@ const interTight = Inter_Tight({
 
 export const metadata: Metadata = {
   title: {
-    default: "Waktu+ - Prayer Times & Al-Quran",
+    default: SITE_TITLE,
     template: "%s | Waktu+",
   },
-  description:
-    "Prayer times, Al-Quran & Islamic calendar for Malaysia. Free, no ads, no signup.",
+  description: SITE_DESCRIPTION,
   keywords: [
     "prayer times",
     "waktu solat",
-    "al-quran",
-    "islamic app",
-    "muslim app",
-    "quran translation",
+    "mosque display",
+    "surau display",
+    "masjid display",
     "malaysia prayer times",
     "jadual solat",
-    "quran online",
     "waktu solat malaysia",
-    "mosque display",
-    "surau",
+    "azan alert",
+    "iqamah countdown",
   ],
   authors: [{ name: "Waktu+" }],
   creator: "Waktu+",
   publisher: "Waktu+",
-  metadataBase: new URL("https://waktuplus.xyz"),
+  metadataBase: new URL(SITE_URL),
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -58,28 +57,19 @@ export const metadata: Metadata = {
     title: "Waktu+",
   },
   openGraph: {
-    title: "Waktu+ - Prayer Times & Al-Quran",
-    description:
-      "Prayer times, Al-Quran & Islamic calendar for Malaysia. Free, no ads, no signup.",
-    url: "https://waktuplus.xyz",
-    siteName: "Waktu+",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
     type: "website",
     locale: "en_US",
-    images: [
-      {
-        url: "/main.png",
-        width: 1200,
-        height: 630,
-        alt: "Waktu+ - Prayer Times & Al-Quran",
-      },
-    ],
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Waktu+ - Prayer Times & Al-Quran",
-    description:
-      "Prayer times, Al-Quran & Islamic calendar for Malaysia. Free, no ads, no signup.",
-    images: ["/main.png"],
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [OG_IMAGE.url],
   },
   robots: {
     index: true,
@@ -92,11 +82,8 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "verification_token",
-  },
   alternates: {
-    canonical: "https://waktuplus.xyz",
+    canonical: SITE_URL,
   },
   category: "religion",
   generator: "Waktu+",
@@ -149,6 +136,7 @@ export default function RootLayout({
           minHeight: "100vh",
         }}
       >
+        <JsonLd data={getSiteJsonLd()} />
         <UpdateBanner />
         <AppProvider>{children}</AppProvider>
         {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (

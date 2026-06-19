@@ -99,27 +99,3 @@ export function formatSmartCountdown(
 
   return parts.join(" ")
 }
-
-// Format for Islamic event countdown (includes days)
-export function formatIslamicEventCountdown(
-  days: number,
-  hours: number,
-  minutes: number,
-  labels: CountdownLabels,
-): string {
-  const parts: string[] = []
-
-  if (days > 0) {
-    parts.push(`${days} ${labels.days}`)
-  }
-
-  if (hours > 0) {
-    parts.push(`${hours} ${labels.hours}`)
-  }
-
-  if (minutes > 0 || parts.length === 0) {
-    parts.push(`${minutes} ${labels.minutes}`)
-  }
-
-  return parts.join(" ")
-}

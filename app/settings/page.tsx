@@ -1,6 +1,7 @@
 import { SettingsScreen } from "@/components/screens/settings-screen"
 import { BottomNav } from "@/components/bottom-nav"
 import type { Metadata } from "next"
+import { OG_IMAGE, SITE_URL } from "@/lib/site"
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -9,14 +10,12 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Settings | Waktu+",
     description: "Customize your Waktu+ prayer times and app settings",
-    url: "https://waktuplus.xyz/settings",
-    images: [
-      { url: "/main.png", width: 1200, height: 630, alt: "Waktu+ Settings" },
-    ],
+    url: `${SITE_URL}/settings`,
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/main.png"],
+    images: [OG_IMAGE.url],
   },
 }
 

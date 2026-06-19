@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { JuzDetailScreen } from "@/components/screens/juz-detail-screen"
 import { BottomNav } from "@/components/bottom-nav"
 import type { Metadata } from "next"
+import { OG_IMAGE, SITE_URL } from "@/lib/site"
 
 interface JuzPageProps {
   params: Promise<{ number: string }>
@@ -15,14 +16,12 @@ export async function generateMetadata({ params }: JuzPageProps): Promise<Metada
     openGraph: {
       title: `Juz ${number} | Al-Quran | Waktu+`,
       description: `Read Juz ${number} with translations and transliteration`,
-      url: `https://waktuplus.xyz/quran/juz/${number}`,
-      images: [
-        { url: "/main.png", width: 1200, height: 630, alt: `Juz ${number} | Waktu+` },
-      ],
+      url: `${SITE_URL}/quran/juz/${number}`,
+      images: [OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
-      images: ["/main.png"],
+      images: [OG_IMAGE.url],
     },
   }
 }

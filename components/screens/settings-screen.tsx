@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useState } from "react"
 import { useAppStore } from "@/lib/store"
 import { ZoneSelector } from "@/components/zone-selector"
@@ -143,42 +144,24 @@ export function SettingsScreen() {
         </div>
       </div>
 
-      {/* About App */}
+      {/* About */}
       <div style={{ marginBottom: "24px" }}>
         <h2 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "12px", color: "#ffffff" }}>{t.aboutApp}</h2>
-        <div style={{ backgroundColor: "#27272a", borderRadius: "8px", padding: "16px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <p style={{ fontSize: "14px", color: "#71717a", lineHeight: 1.6, margin: 0 }}>
-              {t.aboutPrayerData}
-              <br />
-              {t.aboutQuranApi}{" "}
-              <a href="https://alquran.cloud/" target="_blank" rel="noopener noreferrer" style={{ color: "#3b82f6" }}>
-                https://alquran.cloud/
-              </a>
-            </p>
-
-            <div>
-              <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#ffffff", marginBottom: "8px" }}>
-                {t.aboutPwaTitle}
-              </h3>
-              <p style={{ fontSize: "14px", color: "#71717a", lineHeight: 1.6, margin: 0 }}>{t.aboutPwaContent}</p>
-            </div>
-
-            <div>
-              <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#ffffff", marginBottom: "8px" }}>
-                {t.aboutMosqueTitle}
-              </h3>
-              <p style={{ fontSize: "14px", color: "#71717a", lineHeight: 1.6, margin: 0 }}>{t.aboutMosqueContent}</p>
-            </div>
-
-            <div>
-              <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#ffffff", marginBottom: "8px" }}>
-                {t.aboutNoteTitle}
-              </h3>
-              <p style={{ fontSize: "14px", color: "#71717a", lineHeight: 1.6, margin: 0 }}>{t.aboutNoteContent}</p>
-            </div>
-          </div>
-        </div>
+        <Link
+          href="/about"
+          style={{
+            display: "block",
+            padding: "14px 16px",
+            backgroundColor: "#27272a",
+            borderRadius: "8px",
+            color: "#ffffff",
+            fontSize: "14px",
+            fontWeight: 500,
+            textDecoration: "none",
+          }}
+        >
+          {t.aboutPageLink} →
+        </Link>
       </div>
     </div>
   )

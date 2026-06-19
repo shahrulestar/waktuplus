@@ -1,0 +1,57 @@
+name: Feature request
+description: Suggest an improvement for the prayer time display
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    validations:
+      required: false
+    attributes:
+      value: |
+        Waktu+ is focused on full-screen prayer times for mosques and suraus. Please explain how your idea helps display users.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What problem does this solve for a mosque, surau, or display operator?
+      placeholder: Our surau needs a clearer way to show ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the feature you would like.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you thought about?
+      placeholder: We considered adjusting the existing settings panel instead.
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Who benefits most?
+      options:
+        - Mosque / surau display operators
+        - Viewers of the display
+        - Translators / localization
+        - Developers / maintainers
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This request stays within the prayer time display (not Quran, calendar, or unrelated apps)
+          required: true

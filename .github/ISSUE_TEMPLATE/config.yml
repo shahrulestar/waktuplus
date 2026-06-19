@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/shahrulestar/waktuplus/blob/main/SECURITY.md
+    about: Report a security vulnerability privately. Do not use public issues.
+  - name: Question or discussion
+    url: https://github.com/shahrulestar/waktuplus/discussions
+    about: Ask questions or discuss ideas before opening an issue.

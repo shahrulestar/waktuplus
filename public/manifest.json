@@ -1,12 +1,12 @@
 {
-  "name": "Waktu+",
+  "name": "Waktu+ - Prayer Times Display",
   "short_name": "Waktu+",
-  "description": "Prayer times, Al-Quran & Islamic calendar for Malaysia",
+  "description": "Waktu+ is a free full-screen prayer times display for mosques and suraus in Malaysia. JAKIM-accurate schedules, azan alerts, iqamah countdown, and bilingual English & Bahasa Malaysia. No ads, no signup.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#18181b",
   "theme_color": "#18181b",
-  "orientation": "portrait",
+  "orientation": "landscape",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -39,7 +39,7 @@
   ],
   "screenshots": [
     {
-      "src": "/main.png",
+      "src": "/display.png",
       "sizes": "1200x630",
       "type": "image/png",
       "form_factor": "wide"

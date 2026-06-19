@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { SurahDetailScreen } from "@/components/screens/surah-detail-screen"
 import { BottomNav } from "@/components/bottom-nav"
 import type { Metadata } from "next"
+import { OG_IMAGE, SITE_URL } from "@/lib/site"
 
 interface SurahPageProps {
   params: Promise<{ number: string }>
@@ -15,14 +16,12 @@ export async function generateMetadata({ params }: SurahPageProps): Promise<Meta
     openGraph: {
       title: `Surah ${number} | Al-Quran | Waktu+`,
       description: `Read Surah ${number} with translations and transliteration`,
-      url: `https://waktuplus.xyz/quran/surah/${number}`,
-      images: [
-        { url: "/main.png", width: 1200, height: 630, alt: `Surah ${number} | Waktu+` },
-      ],
+      url: `${SITE_URL}/quran/surah/${number}`,
+      images: [OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
-      images: ["/main.png"],
+      images: [OG_IMAGE.url],
     },
   }
 }

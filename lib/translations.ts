@@ -73,6 +73,16 @@ export const translations = {
     locateMe: "Locate Me",
     language: "Language",
     aboutApp: "About App",
+    aboutPageTitle: "About Waktu+",
+    aboutPageIntro:
+      "Waktu+ is a free full-screen prayer times display for mosques and suraus in Malaysia.",
+    aboutPageDetail:
+      "It shows JAKIM-accurate prayer times in a large, readable layout for TVs and monitors — with azan alerts, iqamah countdown, and bilingual English & Bahasa Malaysia support.",
+    aboutPageFree: "Free to use. No ads. No signup.",
+    aboutPageLink: "About Waktu+",
+    aboutPageBack: "Back",
+    aboutPageContactTitle: "Contact",
+    aboutPageContactIntro: "Questions, feedback, or bug reports:",
     // Prayer Times Page
     selectZone: "Select Zone",
     selectYear: "Select Year",
@@ -98,7 +108,7 @@ export const translations = {
       "This app supports automatic updates, but due to iOS limitations, you may not see changes immediately. If the latest version doesn't appear, try closing the app from the background and reopening it. You can also reinstall the app by removing it from your Home Screen and then readding it from the browser. However, please note that reinstalling the PWA may remove your saved data in the Prayer Tracker.",
     aboutMosqueTitle: "For Mosque or Large Screen Use",
     aboutMosqueContent:
-      "Visit waktuplus.xyz/display to show live prayer times in full-screen display mode — perfect for suraus and masjids.",
+      "Visit waktu.shahrulestar.com to show prayer times in full-screen display mode — perfect for suraus and masjids.",
     aboutNoteTitle: "Note:",
     aboutNoteContent:
       "Your progress is saved in your browser's local storage. You won't lose any data unless you clear your browser history or switch devices.",
@@ -139,8 +149,6 @@ export const translations = {
     sunriseIn: "Sunrise in",
     themeColor: "Theme Color",
     zoneSource: "Source: JAKIM API",
-    mobileWarningTitle: "Not Optimized for Mobile",
-    mobileWarningDescription: "This page might not be responsive on mobile. We recommend opening it on a web browser on a computer or TV.",
     visitHomepage: "Visit Homepage",
     dismiss: "Dismiss",
     timeFormat: "Time Format",
@@ -236,6 +244,16 @@ export const translations = {
     locateMe: "Kesan Lokasi Saya",
     language: "Bahasa",
     aboutApp: "Tentang Aplikasi",
+    aboutPageTitle: "Tentang Waktu+",
+    aboutPageIntro:
+      "Waktu+ ialah paparan waktu solat skrin penuh percuma untuk masjid dan surau di Malaysia.",
+    aboutPageDetail:
+      "Ia memaparkan waktu solat tepat JAKIM dalam susun atur besar dan mudah dibaca untuk TV dan monitor — dengan amaran azan, kiraan iqamah, dan sokongan dwibahasa Inggeris & Bahasa Malaysia.",
+    aboutPageFree: "Percuma. Tiada iklan. Tiada pendaftaran.",
+    aboutPageLink: "Tentang Waktu+",
+    aboutPageBack: "Kembali",
+    aboutPageContactTitle: "Hubungi",
+    aboutPageContactIntro: "Soalan, maklum balas, atau laporan pepijat:",
     // Prayer Times Page
     selectZone: "Pilih Zon",
     selectYear: "Pilih Tahun",
@@ -261,7 +279,7 @@ export const translations = {
       "Aplikasi ini menyokong kemaskini automatik, tetapi disebabkan had iOS, anda mungkin tidak melihat perubahan dengan segera. Jika versi terkini tidak muncul, cuba tutup aplikasi dari latar belakang dan buka semula. Anda juga boleh memasang semula aplikasi dengan membuangnya dari Skrin Utama dan menambahnya semula dari pelayar. Walau bagaimanapun, sila ambil perhatian bahawa memasang semula PWA mungkin membuang data yang disimpan dalam Penjejak Solat.",
     aboutMosqueTitle: "Untuk Masjid atau Skrin Besar",
     aboutMosqueContent:
-      "Lawati waktuplus.xyz/display untuk memaparkan waktu solat secara langsung dalam mod paparan skrin penuh — sesuai untuk surau dan masjid.",
+      "Lawati waktu.shahrulestar.com untuk memaparkan waktu solat dalam mod paparan skrin penuh — sesuai untuk surau dan masjid.",
     aboutNoteTitle: "Nota:",
     aboutNoteContent:
       "Kemajuan anda disimpan dalam storan tempatan pelayar. Anda tidak akan kehilangan sebarang data melainkan anda membersihkan sejarah pelayar atau menukar peranti.",
@@ -302,8 +320,6 @@ export const translations = {
     sunriseIn: "Syuruk dalam",
     themeColor: "Warna Tema",
     zoneSource: "Sumber: API JAKIM",
-    mobileWarningTitle: "Tidak Dioptimumkan untuk Mudah Alih",
-    mobileWarningDescription: "Halaman ini mungkin tidak responsif pada peranti mudah alih. Kami mengesyorkan membukanya pada pelayar web di komputer atau TV.",
     visitHomepage: "Lawati Laman Utama",
     dismiss: "Tutup",
     timeFormat: "Format Masa",

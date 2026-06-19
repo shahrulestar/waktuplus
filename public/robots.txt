@@ -9,4 +9,4 @@ Disallow: /api/
 Disallow: /pwa
 
 # Sitemap
-Sitemap: https://waktuplus.xyz/sitemap.xml
+Sitemap: https://waktu.shahrulestar.com/sitemap.xml
