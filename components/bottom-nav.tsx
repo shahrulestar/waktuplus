@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { useMediaQuery } from "@/hooks/use-media-query"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Home, BookOpen, Grid2X2, Settings, Clock, Calendar, Monitor, ChevronRight } from "lucide-react"
@@ -25,15 +26,7 @@ export function BottomNav({ activeScreen }: BottomNavProps) {
   const t = translations[language]
   const router = useRouter()
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [isDesktop, setIsDesktop] = useState(false)
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 768px)")
-    const updateScreenSize = () => setIsDesktop(mediaQuery.matches)
-    updateScreenSize()
-    mediaQuery.addEventListener("change", updateScreenSize)
-    return () => mediaQuery.removeEventListener("change", updateScreenSize)
-  }, [])
+  const isDesktop = useMediaQuery("(min-width: 768px)")
 
   const navItems = [
     { id: "home", label: t.home, icon: Home, href: "/" },

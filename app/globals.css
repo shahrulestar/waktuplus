@@ -204,3 +204,17 @@
   width: 0;
   height: 0;
 }
+
+/* Override JS-driven TV layout on small viewports before / during hydration */
+@media (max-width: 1023px) {
+  [data-display-content] {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    transform: none !important;
+  }
+
+  [data-display-grid] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}

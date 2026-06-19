@@ -18,6 +18,7 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useViewportWidth } from "@/hooks/use-viewport-width"
 import {
   displayPrayerTimeClass,
   displayPrayerNameClass,
@@ -247,7 +248,7 @@ export function DisplayClient() {
   const contentRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
-  const [viewportWidth, setViewportWidth] = useState(1440)
+  const viewportWidth = useViewportWidth()
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
@@ -301,13 +302,6 @@ export function DisplayClient() {
   const isCompact = layoutMode === "compact"
   const padding = Math.max(4, getResponsivePadding(viewportWidth) * (layoutMode === "tv" && viewportWidth >= 1440 ? scale : 1))
   const fabBottom = isCompact ? "calc(16px + env(safe-area-inset-bottom, 0px))" : "24px"
-
-  useEffect(() => {
-    const handleResize = () => setViewportWidth(window.innerWidth)
-    handleResize()
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
 
   // Scale based on fixed 1920x1080 design so resolution stays consistent when alert shows
   useEffect(() => {
@@ -1595,6 +1589,7 @@ export function DisplayClient() {
       >
         <div
           ref={contentRef}
+          data-display-content
           style={{
             ...(isCompact
               ? {
@@ -1654,6 +1649,7 @@ export function DisplayClient() {
       {renderAlert()}
 
       <div
+        data-display-grid
         style={{
           display: "grid",
           gridTemplateColumns: isCompact ? "repeat(2, 1fr)" : "repeat(3, 1fr)",

@@ -6,6 +6,7 @@ import { JsonLd, getSiteJsonLd } from "@/components/json-ld"
 import { AppProvider } from "@/lib/store"
 import { OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site"
 import { UpdateBanner } from "@/components/UpdateBanner"
+import { ViewportInit } from "@/components/viewport-init"
 import "./globals.css"
 
 const inter = Inter({
@@ -106,6 +107,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${interTight.variable}`} suppressHydrationWarning>
       <head>
+        <ViewportInit />
         <Script async src="https://www.googletagmanager.com/gtag/js?id=G-VGEYXEF9L0" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
