@@ -5,8 +5,5 @@ Allow: /
 # Disallow API routes
 Disallow: /api/
 
-# Disallow internal pages
-Disallow: /pwa
-
 # Sitemap
 Sitemap: https://waktu.shahrulestar.com/sitemap.xml

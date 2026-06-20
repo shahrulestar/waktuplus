@@ -16,12 +16,16 @@ export function AboutScreen() {
         backgroundColor: "#18181b",
         color: "#ffffff",
         padding: "24px",
-        maxWidth: "448px",
+        maxWidth: "800px",
         margin: "0 auto",
       }}
     >
-      <Button variant="ghost" asChild className="-ml-2.5 mb-6 text-zinc-400 hover:text-white">
-        <Link href="/settings">{t.aboutPageBack}</Link>
+      <Button
+        variant="ghost"
+        asChild
+        className="-ml-2.5 mb-6 text-zinc-400 hover:bg-transparent hover:text-zinc-400 dark:hover:bg-transparent"
+      >
+        <Link href="/">{t.aboutPageBack}</Link>
       </Button>
 
       <h1 style={{ fontSize: "20px", fontWeight: 700, margin: "0 0 16px 0" }}>{t.aboutPageTitle}</h1>
@@ -32,6 +36,19 @@ export function AboutScreen() {
 
       <p style={{ fontSize: "15px", lineHeight: 1.6, color: "#a1a1aa", margin: "0 0 12px 0" }}>
         {t.aboutPageDetail}
+      </p>
+
+      <p style={{ fontSize: "14px", lineHeight: 1.6, color: "#a1a1aa", margin: "0 0 12px 0" }}>
+        {t.aboutPagePrayerApi}{" "}
+        <a
+          href="https://api.waktusolat.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "#3b82f6", textDecoration: "none" }}
+        >
+          {t.aboutPagePrayerApiLink}
+        </a>
+        .
       </p>
 
       <p style={{ fontSize: "14px", lineHeight: 1.6, color: "#71717a", margin: "0 0 24px 0" }}>
